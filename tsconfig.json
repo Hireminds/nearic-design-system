@@ -13,12 +13,12 @@
     ]
   },
   "include": [
-    "library/**/*.tsx",
+    "packages/**/*.tsx",
     "catalog/**/*.tsx",
     "catalog/runtime.ts"
   ],
   "exclude": [
-    "library/dist",
+    "packages/*/dist",
     "node_modules"
   ]
 }

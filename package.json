@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "library"
+    "packages/*",
+    "storybook"
   ],
   "scripts": {
-    "check:tokens": "python3 tokens/check.py",
+    "check:tokens": "python3 scripts/check-tokens.py",
     "build:package": "python3 scripts/build.py && node scripts/build-ui.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "build": "npm run check:tokens && npm run build:package && npm run typecheck && node scripts/build-catalog.mjs",

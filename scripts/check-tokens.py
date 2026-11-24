@@ -1,7 +1,6 @@
 """Check the designed text and control color pairs in the BOX profile."""
 
-import json
-from pathlib import Path
+from token_registry import profiles
 
 
 TEXT_PAIRS = [
@@ -24,24 +23,21 @@ def luminance(color):
     return sum(channel * weight for channel, weight in zip(linear, (0.2126, 0.7152, 0.0722)))
 
 
-def check(tokens):
-    colors = {t["key"]: t["value"]
-              for t in tokens["colors"]}
+def check(name, tokens):
+    colors = tokens["colors"]
     failures = []
     for minimum, pairs in [(4.5, TEXT_PAIRS), (3.0, GRAPHIC_PAIRS)]:
         for foreground, background in pairs:
             low, high = sorted(luminance(colors[key]) for key in (foreground, background))
             ratio = (high + 0.05) / (low + 0.05)
             if ratio < minimum:
-                failures.append(f"BOX {foreground} on {background}: {ratio:.2f} < {minimum}")
+                failures.append(f"{name} {foreground} on {background}: {ratio:.2f} < {minimum}")
     return failures
 
 
 if __name__ == "__main__":
-    source = json.loads(Path(__file__).with_name("tokens.json").read_text(encoding="utf-8"))
-    if set(source) != {"box"}:
-        raise ValueError("Expected a single BOX token profile")
-    errors = check(source["box"])
-    if errors:
-        raise SystemExit("\n".join(errors))
-    print(f"{len(TEXT_PAIRS) + len(GRAPHIC_PAIRS)} contrast pairs passed in the BOX profile.")
+    for name, values in profiles():
+        errors = check(name, values)
+        if errors:
+            raise SystemExit("\n".join(errors))
+        print(f"{name}: {len(TEXT_PAIRS) + len(GRAPHIC_PAIRS)} contrast pairs passed.")

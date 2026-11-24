@@ -1,22 +1,18 @@
 import { build } from 'esbuild';
-import { mkdir, cp, readFile, writeFile, rm } from 'node:fs/promises';
+import { cp, readFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 
-await rm('library/dist', { recursive: true, force: true });
-await mkdir('library/dist', { recursive: true });
-await build({
-  entryPoints: ['library/index.tsx'],
-  outfile: 'library/dist/index.js',
-  bundle: true,
-  format: 'esm',
-  target: 'es2022',
-  jsx: 'automatic',
-  external: ['react', 'react/jsx-runtime'],
-});
-execFileSync('tsc', ['-p', 'library/tsconfig.build.json'], { stdio: 'inherit' });
-await cp('dist/tokens.css', 'library/dist/tokens.css');
-await cp('tokens/tokens.json', 'library/dist/tokens.json');
-const styles = await Promise.all(
-  ['dist/tokens.css', 'library/atoms.css'].map((p) => readFile(p, 'utf8')),
-);
-await writeFile('library/dist/styles.css', styles.join('\n'));
+for (const name of ['ui-core', 'ui-box']) {
+  const directory = 'packages/' + name;
+  await build({
+    entryPoints: [directory + '/index.tsx'], outfile: directory + '/dist/index.js',
+    bundle: true, format: 'esm', target: 'es2022', jsx: 'automatic',
+    external: ['react', 'react/jsx-runtime', '@nearic/ui-core'],
+  });
+  execFileSync('tsc', ['-p', directory + '/tsconfig.build.json'], {stdio:'inherit'});
+}
+await cp('packages/ui-core/styles.css', 'packages/ui-core/dist/styles.css');
+await cp('packages/ui-box/patterns.css', 'packages/ui-box/dist/patterns.css');
+const styleSources = ['packages/ui-box/dist/tokens.css', 'packages/ui-core/styles.css', 'packages/ui-box/patterns.css'];
+const styles = await Promise.all(styleSources.map(file=> readFile(file, 'utf8')));
+await writeFile('packages/ui-box/dist/styles.css', styles.join('\n'));

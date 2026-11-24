@@ -2,7 +2,7 @@
   "name": "@nearic/ui-box",
   "version": "0.1.0-preview.2",
   "type": "module",
-  "description": "React components and design tokens for the Nearic BOX display",
+  "description": "Nearic BOX components and device theme",
   "files": [
     "dist"
   ],
@@ -13,17 +13,26 @@
     },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css",
-    "./tokens.json": "./dist/tokens.json"
+    "./tokens.json": "./dist/tokens.json",
+    "./overrides.css": "./dist/overrides.css",
+    "./overrides.json": "./dist/overrides.json",
+    "./patterns.css": "./dist/patterns.css"
   },
   "sideEffects": [
     "**/*.css"
   ],
-  "peerDependencies": {
-    "react": ">=18.2.0 <20"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Hireminds/nearic-design-system.git",
-    "directory": "library"
-  }
+    "directory": "packages/ui-box"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0 <20"
+  },
+  "dependencies": {
+    "@nearic/ui-core": "0.1.0-preview.2"
+  },
+  "bundleDependencies": [
+    "@nearic/ui-core"
+  ]
 }

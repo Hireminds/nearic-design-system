@@ -1,4 +1,5 @@
-import { Button, Icon, IconButton, Progress, Row, Stack, Text, type ButtonVariant } from './primitives.js';
+export * from '@nearic/ui-core';
+import { Button, Icon, IconButton, Progress, Row, Stack, Text, type ButtonVariant } from '@nearic/ui-core';
 
 export interface DecisionActionsProps {
   primaryLabel?: string;

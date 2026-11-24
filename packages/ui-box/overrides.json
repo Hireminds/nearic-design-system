@@ -1,0 +1,44 @@
+{
+  "colors": {
+    "surface": "#202224",
+    "text": "#fafaf9",
+    "muted": "#b4b6ba",
+    "action": "#2d3031",
+    "on-action": "#f9faf9",
+    "on-accent": "#10372e",
+    "control": "#373a3b",
+    "track": "#4b5050",
+    "accent-surface": "#203d36",
+    "focus": "#b6f7e5",
+    "text-secondary": "#c5c7ca"
+  },
+  "type": {
+    "title": "30px",
+    "body": "15px",
+    "control": "15px",
+    "home-title": "32px",
+    "home-detail": "14px",
+    "heading": "16px"
+  },
+  "space": {
+    "inset": "14px",
+    "inline": "9px",
+    "section": "16px",
+    "panel": "11px",
+    "bottom": "12px"
+  },
+  "radius": {
+    "panel": "19px",
+    "control": "24px",
+    "icon-tile": "9px"
+  },
+  "size": {
+    "primary": "46px",
+    "control": "36px",
+    "thumb": "20px",
+    "focus": "3px"
+  },
+  "opacity": {
+    "disabled": "0.35"
+  }
+}
