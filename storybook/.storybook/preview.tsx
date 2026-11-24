@@ -2,6 +2,7 @@ import type { Preview } from '@storybook/react-vite';
 import { ArgTypes, Description, Primary, Source, Stories, Title, useOf } from '@storybook/addon-docs/blocks';
 import '@nearic/ui-box/styles.css';
 import './preview.css';
+import { darkTheme } from './theme';
 
 const examples = import.meta.glob<string>('../stories/examples/*.tsx', {
   eager: true, query: '?raw', import: 'default',
@@ -22,6 +23,7 @@ const preview: Preview = {
     layout: 'padded',
     controls: { expanded: true, sort: 'requiredFirst' },
     docs: {
+      theme: darkTheme,
       canvas: { sourceState: 'none' },
       page: () => <>
         <Title /><Description /><Primary />

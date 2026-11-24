@@ -1,3 +1,9 @@
+body {
+  color-scheme: dark;
+  background-color: var(--colors-canvas);
+  color: var(--colors-text);
+}
+
 .box-example {
   box-sizing: border-box;
   width: min(100%, 320px);
