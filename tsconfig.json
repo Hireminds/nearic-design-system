@@ -1,9 +1,24 @@
 {
   "compilerOptions": {
-    "target": "ES2022", "module": "ESNext", "moduleResolution": "Bundler",
-    "jsx": "react-jsx", "strict": true, "skipLibCheck": true,
-    "lib": ["DOM", "DOM.Iterable", "ES2022"]
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ]
   },
-  "include": ["library/**/*.tsx","catalog/**/*.tsx","catalog/runtime.ts","apps/mockups/src/**/*"],
-  "exclude": ["library/dist","node_modules"]
+  "include": [
+    "packages/**/*.tsx",
+    "catalog/**/*.tsx",
+    "catalog/runtime.ts"
+  ],
+  "exclude": [
+    "packages/*/dist",
+    "node_modules"
+  ]
 }

@@ -1,0 +1,393 @@
+{
+  "colors": [
+    {
+      "key": "accent",
+      "label": "Акцент",
+      "usage": "Подтверждение и текущий уровень звука.",
+      "source": "pulse-box",
+      "role": "action"
+    },
+    {
+      "key": "canvas",
+      "label": "Фон",
+      "usage": "Фон экрана устройства.",
+      "source": "pulse-box",
+      "role": "neutral"
+    },
+    {
+      "key": "surface",
+      "label": "Поверхность",
+      "usage": "Подложка настройки и статуса.",
+      "source": "pulse-box",
+      "role": "neutral"
+    },
+    {
+      "key": "text",
+      "label": "Текст",
+      "usage": "Заголовки и значения.",
+      "source": "pulse-box",
+      "role": "neutral"
+    },
+    {
+      "key": "muted",
+      "label": "Подпись",
+      "usage": "Вторичная информация.",
+      "source": "pulse-box",
+      "role": "neutral"
+    },
+    {
+      "key": "action",
+      "label": "Вторичное действие",
+      "usage": "Кнопка «Позже».",
+      "source": "pulse-box",
+      "role": "action"
+    },
+    {
+      "key": "on-action",
+      "label": "Текст вторичной кнопки",
+      "usage": "Надпись и знак на графитовой заливке вторичного действия.",
+      "source": "pulse-box",
+      "role": "action"
+    },
+    {
+      "key": "on-accent",
+      "label": "Текст на акценте",
+      "usage": "Подпись подтверждения.",
+      "source": "pulse-box",
+      "role": "action"
+    },
+    {
+      "key": "control",
+      "label": "Поверхность малой кнопки",
+      "usage": "Подложка кнопки с одной иконкой.",
+      "source": "pulse-box",
+      "role": "neutral"
+    },
+    {
+      "key": "track",
+      "label": "Пустая дорожка",
+      "usage": "Незаполненная часть шкалы или выключенный переключатель.",
+      "source": "pulse-box",
+      "role": "neutral"
+    },
+    {
+      "key": "outline",
+      "label": "Контур поля",
+      "usage": "Видимая граница интерактивной дорожки, поля и выключенного переключателя.",
+      "source": "proposal",
+      "role": "neutral"
+    },
+    {
+      "key": "accent-surface",
+      "label": "Подложка уведомления",
+      "usage": "Тёмная подложка знака сообщения или тихого действия с мятной подписью.",
+      "source": "pulse-box",
+      "role": "action"
+    },
+    {
+      "key": "focus",
+      "label": "Фокус ввода",
+      "usage": "Внешнее кольцо фокуса на тёмной поверхности.",
+      "source": "proposal",
+      "role": "action"
+    },
+    {
+      "key": "network",
+      "label": "Сеть",
+      "usage": "Иконка Wi-Fi рядом с именем сети или текстом о подключении.",
+      "source": "pulse-box",
+      "role": "system"
+    },
+    {
+      "key": "sound",
+      "label": "Звук",
+      "usage": "Иконка динамика рядом с подписью громкости.",
+      "source": "pulse-box",
+      "role": "system"
+    },
+    {
+      "key": "info",
+      "label": "Сведения",
+      "usage": "Информационное сообщение со значком и пояснением.",
+      "source": "proposal",
+      "role": "feedback"
+    },
+    {
+      "key": "success",
+      "label": "Успех",
+      "usage": "Подтверждённый результат с галочкой и подписью.",
+      "source": "proposal",
+      "role": "feedback"
+    },
+    {
+      "key": "warning",
+      "label": "Предупреждение",
+      "usage": "Ситуация требует внимания. Добавьте знак предупреждения и причину.",
+      "source": "proposal",
+      "role": "feedback"
+    },
+    {
+      "key": "error",
+      "label": "Ошибка",
+      "usage": "Текст ошибки и значок рядом с местом исправления.",
+      "source": "proposal",
+      "role": "feedback"
+    },
+    {
+      "key": "destructive",
+      "label": "Опасное действие",
+      "usage": "Заливка явного действия удаления или сброса устройства.",
+      "source": "proposal",
+      "role": "action"
+    },
+    {
+      "key": "on-destructive",
+      "label": "Текст на опасном действии",
+      "usage": "Надпись или иконка поверх опасного действия.",
+      "source": "proposal",
+      "role": "action"
+    },
+    {
+      "key": "line",
+      "label": "Разделитель",
+      "usage": "Декоративная граница между поверхностями; для контура управления используйте «Контур поля».",
+      "source": "proposal",
+      "role": "neutral"
+    },
+    {
+      "key": "text-secondary",
+      "label": "Описание на главном",
+      "usage": "Второстепенное пояснение под названием разговора на главном экране.",
+      "source": "pulse-box",
+      "role": "neutral"
+    }
+  ],
+  "type": [
+    {
+      "key": "title",
+      "label": "Заголовок",
+      "usage": "Короткий вопрос агента.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "body",
+      "label": "Основной текст",
+      "usage": "Пояснение и текст кнопок.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "label",
+      "label": "Подпись",
+      "usage": "Короткое название сети.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "control",
+      "label": "Текст кнопки",
+      "usage": "Подпись короткого действия в строке ответа.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "home-title",
+      "label": "Разговор",
+      "usage": "Крупное название разговора на главном экране.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "home-detail",
+      "label": "Описание разговора",
+      "usage": "Пояснение к названию разговора.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "heading",
+      "label": "Заголовок секции",
+      "usage": "Заголовок настроек и подпись группы.",
+      "source": "pulse-box"
+    }
+  ],
+  "space": [
+    {
+      "key": "gap",
+      "label": "Между действиями",
+      "usage": "Промежуток между кнопками ответа.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "inset",
+      "label": "Горизонтальный отступ",
+      "usage": "Отступ основного ряда действий от края.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "inline",
+      "label": "Иконка и значение",
+      "usage": "Между пиктограммой Wi-Fi и названием сети.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "section",
+      "label": "Отступ вопроса",
+      "usage": "От края экрана до текста запроса.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "panel",
+      "label": "Отступ настройки",
+      "usage": "От края поверхности до элементов громкости.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "bottom",
+      "label": "Под действиями",
+      "usage": "От нижней границы дисплея до ряда ответа.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "compact",
+      "label": "Малый интервал",
+      "usage": "Между знаком и подписью кнопки.",
+      "source": "pulse-box"
+    }
+  ],
+  "radius": [
+    {
+      "key": "panel",
+      "label": "Настройка",
+      "usage": "Поверхность сети и громкости.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "control",
+      "label": "Кнопка ответа",
+      "usage": "Скругление кнопок ответа.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "indicator",
+      "label": "Круг",
+      "usage": "Точка связи, бегунок или круглая иконочная кнопка.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "track",
+      "label": "Дорожка",
+      "usage": "Закругление торцов индикатора уровня.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "icon-tile",
+      "label": "Плашка иконки",
+      "usage": "Скругление знака отправителя или сообщения.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "switch-track",
+      "label": "Радиус дорожки",
+      "usage": "Сохраняет прямой участок между торцами переключателя.",
+      "source": "proposal"
+    }
+  ],
+  "size": [
+    {
+      "key": "touch",
+      "label": "Область касания",
+      "usage": "Минимальная высота сенсорного действия; для иконочной кнопки также ширина.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "primary",
+      "label": "Высота главного действия",
+      "usage": "Контейнер главного действия с удобной областью нажатия.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "control",
+      "label": "Компактная кнопка",
+      "usage": "Видимая кнопка внутри большей области касания.",
+      "source": "proposal"
+    },
+    {
+      "key": "icon",
+      "label": "Иконка",
+      "usage": "Иконка системного действия или строки сети.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "icon-small",
+      "label": "Малая иконка",
+      "usage": "Динамик рядом с подписью или знак в кнопке.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "icon-large",
+      "label": "Крупная иконка",
+      "usage": "Плюс и минус в кнопках изменения уровня.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "stroke",
+      "label": "Штрих иконки",
+      "usage": "Толщина линий в сетке иконки с viewBox 24 × 24.",
+      "source": "proposal"
+    },
+    {
+      "key": "track",
+      "label": "Толщина дорожки",
+      "usage": "Высота видимой полосы заполнения.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "thumb",
+      "label": "Бегунок",
+      "usage": "Видимый круг для изменения значения.",
+      "source": "proposal"
+    },
+    {
+      "key": "indicator",
+      "label": "Индикатор связи",
+      "usage": "Компактный статус рядом с текстом.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "focus",
+      "label": "Кольцо фокуса",
+      "usage": "Толщина контура активного элемента.",
+      "source": "pulse-box"
+    },
+    {
+      "key": "switch-track-width",
+      "label": "Ширина переключателя",
+      "usage": "Видимая дорожка между торцами.",
+      "source": "proposal"
+    },
+    {
+      "key": "switch-pad",
+      "label": "Отступ бегунка",
+      "usage": "Расстояние от края дорожки до круга бегунка.",
+      "source": "proposal"
+    }
+  ],
+  "motion": [
+    {
+      "key": "feedback",
+      "label": "Отклик",
+      "usage": "Смена цвета или положения при нажатии.",
+      "source": "proposal"
+    },
+    {
+      "key": "reduced",
+      "label": "Уменьшение движения",
+      "usage": "Мгновенный переход при включённом уменьшении движения.",
+      "source": "proposal"
+    }
+  ],
+  "opacity": [
+    {
+      "key": "disabled",
+      "label": "Недоступность",
+      "usage": "Вторичный визуальный признак недоступности. Элемент также сообщает состояние disabled.",
+      "source": "pulse-box"
+    }
+  ]
+}

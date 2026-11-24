@@ -1,4 +1,4 @@
-name: Build UI and deploy Pages
+name: Build BOX catalog, packages and Storybook
 on:
   pull_request:
   push:
@@ -10,16 +10,22 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run verify
-      - uses: actions/upload-pages-artifact@v3
+      - name: Build typed BOX stories
+        run: npm run build --workspace @nearic/box-storybook
+      - name: Install Chromium for component checks
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Check stories, controls and switch geometry
+        run: npm run test:browser --workspace @nearic/box-storybook
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         if: github.event_name != 'pull_request'
         with:
           path: dist
@@ -27,7 +33,7 @@ jobs:
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pages: write
       id-token: write
@@ -38,6 +44,6 @@ jobs:
       group: github-pages
       cancel-in-progress: false
     steps:
-      - name: Deploy catalog and mockups
+      - name: Deploy BOX catalog and package
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

@@ -1,0 +1,22 @@
+{
+  "name": "@nearic/tokens",
+  "version": "0.1.0-preview.2",
+  "type": "module",
+  "description": "Shared semantic design tokens for Nearic interfaces",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/tokens.json",
+    "./tokens.css": "./dist/tokens.css",
+    "./tokens.json": "./dist/tokens.json"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hireminds/nearic-design-system.git",
+    "directory": "packages/tokens"
+  }
+}

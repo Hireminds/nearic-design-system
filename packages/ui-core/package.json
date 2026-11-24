@@ -1,0 +1,33 @@
+{
+  "name": "@nearic/ui-core",
+  "version": "0.1.0-preview.2",
+  "type": "module",
+  "description": "Shared React primitives for Nearic interfaces",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hireminds/nearic-design-system.git",
+    "directory": "packages/ui-core"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0 <20"
+  },
+  "dependencies": {
+    "@nearic/tokens": "0.1.0-preview.2"
+  },
+  "bundleDependencies": [
+    "@nearic/tokens"
+  ]
+}

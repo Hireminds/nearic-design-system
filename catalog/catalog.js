@@ -1,7 +1,6 @@
 import {mountSamples, mountBuilder} from './runtime.js';
 
 const {tokens, atoms, components} = window.catalogData;
-const platforms = {desktop:'Компьютер', mobile:'Телефон', box:'BOX'};
 const chapters = {atoms:'Атомы', builder:'Конструктор', components:'Составные блоки', foundations:'Основы'};
 const groups = {
   colors:'Цвета', type:'Типографика', space:'Отступы', radius:'Скругления',
@@ -16,41 +15,35 @@ const groupUse = {
   motion:'Длительность переходов и режим уменьшенного движения.',
   opacity:'Видимость неактивных и вспомогательных элементов.'
 };
-const origins = {'pulse-box':'Прототип BOX', 'pulse-web':'Макет кабинета', proposal:'Предложение'};
+const origins = {'pulse-box':'Прототип BOX', proposal:'Предложение'};
 const colorRoles = {system:'Системные функции', action:'Действия', feedback:'Состояния', neutral:'Поверхности и текст'};
-const sectionItems = (section, family) => section === 'atoms'
-  ? atoms.filter(item => item.families.includes(family))
-  : components.filter(item => item.family === family);
+const sectionItems = section => section === 'atoms' ? atoms : components;
 const $ = selector => document.querySelector(selector);
 const menuButton = $('#menu-toggle'), sidebar = $('#sidebar'), search = $('#search');
-const navigation = $('#navigation'), page = $('#page'), platformNav = $('#profiles'), crumb = $('#crumb');
+const navigation = $('#navigation'), page = $('#page'), crumb = $('#crumb');
 const mobileMenu = matchMedia('(max-width: 800px)');
 let current;
 let cleanPage;
 
 function readRoute() {
-  const [wanted, sectionKey = '', entryKey = ''] = location.hash.slice(1).split('/');
-  const platform = Object.hasOwn(platforms,wanted) ? wanted : wanted === 'device' ? 'box' : mobileMenu.matches ? 'mobile' : 'desktop';
-  const family = platform === 'box' ? 'box' : 'web';
+  const [prefix, sectionKey = '', entryKey = ''] = location.hash.slice(1).split('/');
+  if (prefix !== 'box') return {section:'', entry:''};
   const section = Object.hasOwn(chapters,sectionKey) ? sectionKey : '';
   let entry = '';
   if (section === 'atoms' || section === 'components') {
-    entry = sectionItems(section, family).find(item => item.id === entryKey)?.id || '';
-  } else if (section === 'foundations' && Object.hasOwn(tokens[family], entryKey)) {
+    entry = sectionItems(section).find(item => item.id === entryKey)?.id || '';
+  } else if (section === 'foundations' && Object.hasOwn(tokens.box, entryKey)) {
     entry = entryKey;
   }
-  return {platform, family, section, entry};
+  return {section, entry};
 }
-function route(section = '', entry = '', platform = current.platform) {
-  return '#' + [platform, section, entry].filter(Boolean).join('/');
+function route(section = '', entry = '') {
+  return '#' + ['box', section, entry].filter(Boolean).join('/');
 }
 function safeText(value) {
   return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 }
 const icons = {
-  desktop:'<rect x="2" y="3.5" width="20" height="14" rx="2.4"/><path d="M8 21h8m-4-3.5V21"/>',
-  mobile:'<rect x="6" y="2" width="12" height="20" rx="2.7"/><path d="M11 18.4h2"/>',
-  box:'<rect x="2.5" y="4" width="19" height="13.5" rx="2.8"/><path d="m6 18-2 3h16l-2-3"/>',
   overview:'<rect x="3" y="3" width="7" height="7" rx="1.7"/><rect x="14" y="3" width="7" height="7" rx="1.7"/><rect x="3" y="14" width="7" height="7" rx="1.7"/><rect x="14" y="14" width="7" height="7" rx="1.7"/>'
 };
 function icon(id) {return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">'+icons[id]+'</svg>';}
@@ -68,9 +61,9 @@ function renderNav() {
     if (section === 'builder') {
       if (!match('конструктор собрать сборка builder')) continue;
     } else if (section === 'foundations') {
-      entries = Object.keys(tokens[current.family]).filter(id => match('основы токены',id,groups[id])).map(id => navLink(section,id,groups[id]));
+      entries = Object.keys(tokens.box).filter(id => match('основы токены',id,groups[id])).map(id => navLink(section,id,groups[id]));
     } else {
-      entries = sectionItems(section,current.family).filter(item => match(chapters[section], item.name,item.group,item.id)).map(item => navLink(section,item.id,item.name));
+      entries = sectionItems(section).filter(item => match(chapters[section], item.name,item.group,item.id)).map(item => navLink(section,item.id,item.name));
     }
     if (entries.length || section === 'builder') {
       nav.push('<div class="nav-chapter">'+navLink(section,'',chapters[section])+'</div>');
@@ -87,8 +80,8 @@ function partHeading(title, url, label) {
 }
 function sample(item, section) {
   const isAtom = section === 'atoms';
-  return '<div class="demo '+(current.family==='box'?'device-demo':'')+'" data-family="'+current.family+'" data-component="'+item.id+'">'+
-    (isAtom?'<div data-atom-demo="'+item.id+'"></div>':item.example)+'</div>';
+  return '<div class="demo device-demo" data-family="box" data-component="'+item.id+'">'+
+    '<div '+(isAtom?'data-atom-demo':'data-pattern-demo')+'="'+item.id+'"></div></div>';
 }
 function detailUrl(item, section) {return route(section,item.id);}
 function itemTile(item, section) {
@@ -97,19 +90,20 @@ function itemTile(item, section) {
     sample(item,section)+'<div class="tile-foot"><p>'+item.summary+'</p><a href="'+url+'" aria-label="Подробнее: '+item.name+'">Подробнее</a></div></article>';
 }
 function overview() {
-  const items = sectionItems('atoms',current.family);
+  const items = atoms;
   const featured = ['icon','button','slider'].map(id => items.find(item=>item.id===id)).filter(Boolean);
   const extras = items.filter(item=>!featured.includes(item));
-  return pageTitle('Каталог «Пульс»','Атомы и составные блоки для '+(current.family==='box'?'сенсорного экрана BOX.':'кабинета Nearic.'))+
+  return pageTitle('Каталог BOX','Атомы и составные блоки «Пульса» для сенсорного экрана 320 × 240.')+
     partHeading('Атомы',route('atoms'),'Все атомы')+'<div class="tiles">'+featured.map(item=>itemTile(item,'atoms')).join('')+'</div>'+
     '<div class="quick-links">'+extras.map(item=>'<a href="'+route('atoms',item.id)+'">'+item.name+'</a>').join('')+'</div>'+
     '<a class="builder-link" href="'+route('builder')+'"><strong>Конструктор</strong><span>Собрать свой вариант и получить код</span></a>'+
-    partHeading('Составные блоки',route('components'),'Все блоки')+'<div class="pattern-index">'+sectionItems('components',current.family).map(item=>'<a href="'+detailUrl(item,'components')+'"><strong>'+item.name+'</strong><span>'+item.summary+'</span></a>').join('')+'</div>'+
-    '<section class="foundations-overview">'+partHeading('Основы',route('foundations'),'Все токены')+'<div class="quick-links">'+Object.keys(tokens[current.family]).map(key=>'<a href="'+route('foundations',key)+'">'+groups[key]+'</a>').join('')+'</div></section>';
+    partHeading('Составные блоки',route('components'),'Все блоки')+'<div class="pattern-index">'+components.map(item=>'<a href="'+detailUrl(item,'components')+'"><strong>'+item.name+'</strong><span>'+item.summary+'</span></a>').join('')+'</div>'+
+    '<section class="foundations-overview">'+partHeading('Основы',route('foundations'),'Все токены')+'<div class="quick-links">'+Object.keys(tokens.box).map(key=>'<a href="'+route('foundations',key)+'">'+groups[key]+'</a>').join('')+'</div></section>';
 }
 function itemPage(item, section) {
   let code = '';
   if (item.code) code = '<h2>Код</h2><pre class="code"><code>'+safeText(item.code)+'</code></pre>';
+  const stories = item.id === 'icon-button' ? '<a class="stories-link" href="./storybook/?path=/story/box-iconbutton--variants">Варианты в Storybook</a>' : '';
   const parts = (item.uses || []).map(id => {
     const atom = atoms.find(a => a.id === id);
     return '<a href="'+route('atoms',id)+'">'+atom.name+'</a>';
@@ -117,10 +111,11 @@ function itemPage(item, section) {
   return pageTitle(item.name,item.summary,'<span class="proposal">Предложение</span>')+
     '<div class="detail-container">'+partHeading('Живой пример')+sample(item,section)+'<section class="details">'+
     (parts.length?'<h2>Из чего собран</h2><div class="quick-links">'+parts.join('')+'</div>':'')+
-    '<h2>Применение</h2><p>'+item.usage+'</p><h2>Состояния и варианты</h2><ul>'+item.states.map(state=>'<li>'+state+'</li>').join('')+'</ul>'+code+'</section></div>';
+    '<h2>Применение</h2><p>'+item.usage+'</p><h2>Состояния и варианты</h2></section>'+
+    '<div data-state-demo="'+item.id+'"></div>'+stories+(code?'<section class="details">'+code+'</section>':'')+'</div>';
 }
 function itemIndex(section) {
-  const items = sectionItems(section,current.family);
+  const items = sectionItems(section);
   const intro = section==='atoms'?'Самостоятельные элементы с открытым API.':'Комбинации атомов для повторяющихся задач.';
   const names = [...new Set(items.map(item=>item.group))];
   return pageTitle(chapters[section],intro,'<span class="proposal">Предложение</span>')+names.map(group=>'<section class="group-index">'+partHeading(group)+
@@ -128,7 +123,7 @@ function itemIndex(section) {
 }
 function tokenRow(key,t) {
   const symbol='--'+key+'-'+t.key;
-  const val=t.platforms?.[current.platform]||t.value;
+  const val=t.value;
   const sampleByGroup = {
     colors:'<i class="color-sample" style="background:var('+symbol+')"></i>',
     type:'<span class="type-sample" style="font-size:var('+symbol+')">Аа</span>',
@@ -143,7 +138,7 @@ function tokenRow(key,t) {
     safeText(key==='colors'?val.toUpperCase():val)+'</code><p>'+t.usage+(provenance?'<small>'+provenance+'</small>':'')+'</p></div>';
 }
 function foundationTable(key) {
-  const rows=tokens[current.family][key];
+  const rows=tokens.box[key];
   if(key!=='colors')return '<div class="token-list">'+rows.map(t=>tokenRow(key,t)).join('')+'</div>';
   return Object.entries(colorRoles).map(([role,title])=>{
     const matches=rows.filter(t=>(t.role||'neutral')===role);
@@ -152,8 +147,8 @@ function foundationTable(key) {
 }
 function foundationPage() {
   if(current.entry)return pageTitle(groups[current.entry], groupUse[current.entry])+foundationTable(current.entry);
-  return pageTitle('Основы','Визуальные роли и значения для выбранной платформы.')+
-    '<div class="foundation-nav">'+Object.keys(tokens[current.family]).map(key=>'<a href="'+route('foundations',key)+'"><strong>'+groups[key]+'</strong><span>'+groupUse[key]+'</span></a>').join('')+'</div>';
+  return pageTitle('Основы','Визуальные роли и значения для дисплея BOX.')+
+    '<div class="foundation-nav">'+Object.keys(tokens.box).map(key=>'<a href="'+route('foundations',key)+'"><strong>'+groups[key]+'</strong><span>'+groupUse[key]+'</span></a>').join('')+'</div>';
 }
 function menu(open) {
   menuButton.setAttribute('aria-expanded',String(open));
@@ -163,21 +158,15 @@ function render() {
   if (typeof cleanPage === 'function') cleanPage();
   cleanPage = undefined;
   current=readRoute();
-  const {platform, family, section, entry}=current;
-  document.documentElement.dataset.family=family;
-  document.documentElement.dataset.platform=platform;
-  const item = (section==='atoms'||section==='components') && sectionItems(section,family).find(x=>x.id===entry);
+  const {section, entry}=current;
+  const item = (section==='atoms'||section==='components') && sectionItems(section).find(x=>x.id===entry);
   const name = item?.name || groups[entry] || chapters[section] || 'Каталог';
-  document.title=name+' · Nearic Design System';
+  document.title=name+' · Nearic BOX';
   crumb.innerHTML = '<a href="'+route()+'">Каталог</a>'+(section?'<span class="crumb-sep">/</span>'+
     (entry?'<a href="'+route(section)+'">'+chapters[section]+'</a><span class="crumb-sep">/</span>':'')+'<b>'+name+'</b>':'');
-  platformNav.innerHTML=Object.entries(platforms).map(([id,label])=>{
-    const preserve=section!=='components' || (id==='box')===(family==='box');
-    return '<a href="'+route(section,preserve?entry:'',id)+'" aria-current="'+(id===platform)+'">'+icon(id)+label+'</a>';
-  }).join('');
   if(section==='builder'){
     page.innerHTML=pageTitle('Конструктор','Соберите строку настройки из базовых элементов.')+'<div id="builder"></div>';
-    cleanPage = mountBuilder($('#builder'),platform);
+    cleanPage = mountBuilder($('#builder'));
   }else{
     if(section==='foundations')page.innerHTML=foundationPage();
     else if(item)page.innerHTML=itemPage(item,section);

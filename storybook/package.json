@@ -1,0 +1,23 @@
+{
+  "name": "@nearic/box-storybook",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "storybook dev -p 6006 --disable-telemetry",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "npm run typecheck && storybook build --disable-telemetry --output-dir ../dist/storybook",
+    "test:browser": "node tests/browser.mjs"
+  },
+  "dependencies": {
+    "@nearic/ui-box": "*",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "10.6.8",
+    "@storybook/react-vite": "10.6.8",
+    "playwright": "1.65.1",
+    "storybook": "10.6.8",
+    "vite": "7.2.2"
+  }
+}
