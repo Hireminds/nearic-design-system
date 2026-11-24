@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Пульс · экран BOX</title>
+<style>
+:root {
+  color-scheme: dark;
+  --box-canvas: #070809;
+  --box-surface: #202224;
+  --box-text: #fafaf9;
+  --box-mint: #73eed0;
+  --box-muted: #b4b6ba;
+  --box-action: #2d3031;
+  --box-action-ink: #10372e;
+  font: 16px/1.15 system-ui, sans-serif;
+  color: var(--box-text);
+  background: var(--box-canvas);
+}
+* { box-sizing: border-box }
+body, h1, p { margin: 0 }
+[hidden] { display: none !important }
+.screen { position: relative; width: min(320px,100%); height: 240px; margin: 0 auto; }
+header, .sender, .answers, .network, .sound-title, .volume, .sound-title label { display: flex; align-items: center; }
+header { height: 44px; padding-inline: 16px 8px; justify-content: space-between; }
+.sender, .sound-title label { gap: 7px; }
+.sender { font-size: 15px; font-weight: 680; }
+h1 { font-size: 30px; line-height: 1.05; letter-spacing: -.045em; }
+.message { margin: 15px 16px 0; }
+.message p { color: var(--box-muted); font-size: 15px; line-height: 1.3; margin-top: 7px; }
+button { cursor: pointer; border: 0; color: var(--box-text); background: var(--box-action); font: 650 15px/1.1 system-ui, sans-serif; }
+button:active:not(:disabled) { filter: brightness(.84); }
+button:focus-visible { outline: 2px solid var(--box-mint); outline-offset: -2px; }
+button:disabled { opacity: .42; cursor: default; }
+.sender i { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 9px; background: var(--box-mint); color: var(--box-action-ink); }
+svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 0 7px; background: transparent; color: var(--box-muted); font-size: 13px; font-weight: 500; }
+.nav svg { width: 16px; height: 16px; }
+.answers { position: absolute; bottom: 12px; inset-inline: 14px; gap: 8px; }
+.answers button { flex: 1; min-height: 44px; border-radius: 24px; padding: 4px 12px; border-block: 2px solid transparent; background-clip: padding-box; }
+.answers .affirm { flex: 1.45; background-color: var(--box-mint); color: var(--box-action-ink); }
+header strong { font-size: 16px; letter-spacing: -.035em; }
+.network, .sound { margin: 4px 13px 0; border-radius: 19px; background: var(--box-surface); }
+.network { gap: 9px; min-height: 44px; padding: 9px 14px; font-size: 15px; }
+.network svg { color: #77c6ff; }
+.network small { margin-left: auto; color: var(--box-muted); font-size: 13px; font-weight: 550; }
+.sound { margin-top: 7px; padding: 11px 11px 9px; }
+.sound-title { justify-content: space-between; margin: 0 4px 8px; font-size: 16px; font-weight: 650; }
+.sound-title svg { color: #ffad72; }
+output { color: var(--box-mint); font-variant-numeric: tabular-nums; }
+.volume { gap: 6px; }
+.volume button { flex: 0 0 44px; height: 44px; border-radius: 50%; border: 4px solid transparent; background-color: #373a3b; background-clip: padding-box; font-size: 21px; font-weight: 500; }
+.track { flex: 1; height: 8px; overflow: hidden; border-radius: 5px; background: #4b5050; }
+.track span { display: block; width: 60%; height: 100%; border-radius: inherit; background: var(--box-mint); }
+</style>
+</head>
+<body>
+<main class="screen" aria-label="Образец экрана BOX">
+  <section id="decision" aria-label="Запрос агента">
+    <header>
+      <span class="sender"><i><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.8-5.4a8.5 8.5 0 1 1 16.2-4.1Z"/></svg></i>Codex</span>
+      <button type="button" class="nav" id="settings-open">Настройки</button>
+    </header>
+    <div class="message" aria-live="polite"><h1>Запустить тесты?</h1><p>Проверить сборку прошивки.</p></div>
+    <div class="answers"><button type="button" id="later">Позже</button><button type="button" class="affirm" id="accept">Запустить</button><button type="button" id="again" hidden>Ещё раз</button></div>
+  </section>
+  <section id="settings" aria-label="Настройки" hidden>
+    <header><strong>Настройки</strong><button type="button" class="nav" id="settings-close">К запросу</button></header>
+    <div class="network"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M2 8a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0m-11 4a6 6 0 0 1 8 0"/><circle cx="12" cy="20" r="1"/></svg>Wi-Fi<small>Домашняя</small></div>
+    <div class="sound"><div class="sound-title"><label for="level"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4zm4 4a5 5 0 0 1 0 6m3-9a9 9 0 0 1 0 12"/></svg>Громкость</label><output id="level" aria-live="polite">60%</output></div>
+      <div class="volume"><button type="button" id="quieter" aria-label="Убавить громкость">−</button><div class="track" aria-hidden="true"><span></span></div><button type="button" id="louder" aria-label="Прибавить громкость">+</button></div>
+    </div>
+  </section>
+</main>
+<script>
+const byId = id => document.getElementById(id);
+const answers = {
+  later: ['Отложено','Можно вернуться к вопросу.'],
+  accept: ['Тесты запущены','Ответ отмечен в примере.'],
+  again: ['Запустить тесты?','Проверить сборку прошивки.']
+};
+function choose(key) {
+  const [title, description] = answers[key];
+  document.querySelector('.message h1').textContent = title;
+  document.querySelector('.message p').textContent = description;
+  const asked = key === 'again';
+  byId('later').hidden = byId('accept').hidden = !asked;
+  byId('again').hidden = asked;
+  byId(asked ? 'accept' : 'again').focus({preventScroll:true});
+}
+Object.keys(answers).forEach(id => byId(id).addEventListener('click', () => choose(id)));
+function openSettings(show) {
+  byId('settings').hidden = !show;
+  byId('decision').hidden = show;
+  byId(show ? 'settings-close' : 'settings-open').focus({preventScroll:true});
+}
+byId('settings-open').addEventListener('click', () => openSettings(true));
+byId('settings-close').addEventListener('click', () => openSettings(false));
+let volume = 60;
+function setVolume(step) {
+  volume = Math.max(0,Math.min(100,volume + step));
+  byId('level').textContent = volume + '%';
+  document.querySelector('.track span').style.width = volume + '%';
+  byId('quieter').disabled = volume === 0;
+  byId('louder').disabled = volume === 100;
+}
+byId('quieter').addEventListener('click', () => setVolume(-10));
+byId('louder').addEventListener('click', () => setVolume(10));
+</script>
+</body>
+</html>
