@@ -1,0 +1,43 @@
+name: Spec Kit
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sdd-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  sdd:
+    name: SDD checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+
+      - name: Install pinned Spec Kit
+        run: |
+          nearic_sdd_venv="$RUNNER_TEMP/nearic-sdd"
+          python3 -m venv "$nearic_sdd_venv"
+          "$nearic_sdd_venv/bin/python" -m pip --disable-pip-version-check install \
+            'git+https://github.com/github/spec-kit.git@980b3d027f4bd7958c35f97f618d854b41320e3f'
+          echo "$nearic_sdd_venv/bin" >> "$GITHUB_PATH"
+
+      - name: Check Spec Kit integration and workflows
+        shell: bash
+        run: |
+          command -v specify
+          specify integration status --json | jq -e '.status == "ok"'
+          for workflow in speckit bugfix assess; do
+            specify workflow resolve "$workflow"
+          done
+
+      - name: Check patch whitespace
+        run: git diff --check HEAD^ HEAD

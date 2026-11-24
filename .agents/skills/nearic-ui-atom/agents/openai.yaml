@@ -1,0 +1,4 @@
+interface:
+  display_name: "Атомы Nearic"
+  short_description: "Спецификация, реализация и ревью атомов Nearic"
+  default_prompt: "Используй $nearic-ui-atom, чтобы описать и проверить новый атом BOX."

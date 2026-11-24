@@ -57,3 +57,16 @@ python3 -m http.server 8080 --bind 127.0.0.1 --directory dist
 ```
 
 Проверка покрывает разрешение токенов, контраст, типы, содержимое архивов и установку в отдельные проекты. [Правила компонентов](docs/components.md) · [Токены](docs/tokens.md) · [Контракт поставки](specs/001-pulse-library/spec.md) · [Публикация каталога](.github/workflows/pages.yml)
+
+
+## Работа с атомами
+
+В Codex откройте этот репозиторий и вызовите `$nearic-ui-atom`. Скилл дополняет спецификацию библиотеки, оформляет свойства и состояния атома и связывает их с примерами и тестами Storybook. Для команды `specify` используйте версию 1.4.3.
+
+```sh
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@v1.4.3
+specify integration status --json
+specify workflow resolve speckit
+```
+
+[Скилл атомов](.agents/skills/nearic-ui-atom/SKILL.md) · [Контракт](specs/001-pulse-library/spec.md) · [Процесс в Codex](docs/process/chat-workflows.md)
