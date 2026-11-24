@@ -1,0 +1,17 @@
+{
+  "devices": {
+    "studio": [
+      {"id":"volume","kind":"range","label":"Громкость","value":60,"min":0,"max":100,"step":5,"unit":"%"},
+      {"id":"notifications","kind":"toggle","label":"Уведомления","value":true}
+    ],
+    "office": [
+      {"id":"volume","kind":"range","label":"Громкость","value":35,"min":0,"max":100,"step":5,"unit":"%"},
+      {"id":"notifications","kind":"toggle","label":"Уведомления","value":false},
+      {"id":"quiet","kind":"toggle","label":"Тихий режим","value":false}
+    ],
+    "living-room": [
+      {"id":"volume","kind":"range","label":"Громкость","value":50,"min":0,"max":100,"step":5,"unit":"%"},
+      {"id":"notifications","kind":"toggle","label":"Уведомления","value":true}
+    ]
+  }
+}

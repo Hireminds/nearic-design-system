@@ -1,0 +1,24 @@
+{
+  "name": "nearic-design-system-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "library",
+    "apps/mockups"
+  ],
+  "scripts": {
+    "check:tokens": "python3 tokens/check.py",
+    "build:package": "python3 scripts/build.py && node scripts/build-ui.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "npm run check:tokens && npm run build:package && npm run typecheck && node scripts/build-apps.mjs",
+    "verify": "npm run build && node scripts/verify-build.mjs"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3",
+    "esbuild": "0.28.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "typescript": "5.9.3"
+  }
+}

@@ -8,5 +8,11 @@
   "states": [
     "На связи",
     "Вне сети"
+  ],
+  "kind": "pattern",
+  "uses": [
+    "icon",
+    "text",
+    "row"
   ]
 }
