@@ -1,42 +1,34 @@
-# Nearic Design System
+# Nearic BOX UI
 
-«Пульс» — дизайн-система для личного кабинета Nearic и браузерного представления экрана BOX 320 × 240.
+`@nearic/ui-box` — библиотека React-компонентов и токенов для экрана Nearic BOX 320 × 240. В каталоге можно посмотреть состояния компонентов, проверить управление с клавиатуры и собрать свою строку настройки. [Открыть каталог](https://hireminds.github.io/nearic-design-system/#box) · [Перейти к конструктору](https://hireminds.github.io/nearic-design-system/#box/builder)
 
-[Каталог компонентов](https://hireminds.github.io/nearic-design-system/) · [Полные макеты](https://hireminds.github.io/nearic-design-system/mockups/) · [Сборки и публикации](https://github.com/Hireminds/nearic-design-system/actions/workflows/pages.yml)
+## Установка
 
-| Каталог | Назначение |
-| --- | --- |
-| [library](library/) | Исходники пакета `@nearic/ui`. Публичные TSX-компоненты, стили, типы и список атомов |
-| [tokens](tokens/) | Токены, профили, происхождение значений и проверка контраста |
-| [components](components/) | Карточки составных блоков и ссылки на атомы в `uses` |
-| [catalog](catalog/) | Каталог атомов, составных блоков, токенов и конструктор |
-| [apps/mockups](apps/mockups/) | Отдельное React-приложение. Веб-экраны в `src/web/`, экраны BOX в `src/box/` |
-| [docs/components.md](docs/components.md) | Правила композиции, доступности и ревью |
-| [docs/tokens.md](docs/tokens.md) | Семантические роли, восстановленные значения первого «Пульса» и предлагаемые дополнения |
-| [specs](specs/) | Контракт библиотеки для ревью |
-
-## Подключение
-
-Внутри монорепозитория npm workspaces устанавливает пакет как зависимость приложения макетов. В другом проекте с React используйте архив пакета из последней публикации Pages. Версия и контрольная сумма указаны в [манифесте архива](https://hireminds.github.io/nearic-design-system/downloads/package.json).
+В проекте с React 18.2 или 19 установите архив библиотеки. [Манифест опубликованной версии с SHA-512](https://hireminds.github.io/nearic-design-system/downloads/package.json)
 
 ```sh
-npm install https://hireminds.github.io/nearic-design-system/downloads/nearic-ui-0.1.0-preview.1.tgz
+npm install https://hireminds.github.io/nearic-design-system/downloads/nearic-ui-box-0.1.0-preview.2.tgz
 ```
 
 ```tsx
-import { Button, Icon } from '@nearic/ui';
-import '@nearic/ui/styles.css';
+import { useState } from 'react';
+import { NetworkRow, Stack, VolumeControl } from '@nearic/ui-box';
+import '@nearic/ui-box/styles.css';
 
-export function Confirm({ onConfirm }: { onConfirm: () => void }) {
-  return <div data-family="web" data-platform="mobile">
-    <Button onClick={onConfirm}><Icon name="check" />Подтвердить</Button>
-  </div>;
+export function SoundSettings() {
+  const [volume, setVolume] = useState(60);
+  return <Stack data-family="box">
+    <NetworkRow online value="Домашняя" />
+    <VolumeControl value={volume} onChange={setVolume} />
+  </Stack>;
 }
 ```
 
-## Локальная сборка
+Стили включают токены под селектором `[data-family="box"]`. Для собственного рендерера доступны отдельные импорты `@nearic/ui-box/tokens.css` и `@nearic/ui-box/tokens.json`.
 
-Требуются Node.js 22, npm и Python 3.
+## Разработка
+
+Требуются Node.js 22 с npm и Python 3. Выполните следующие команды и откройте [локальный каталог](http://127.0.0.1:8080/#box).
 
 ```sh
 npm ci
@@ -44,10 +36,13 @@ npm run verify
 python3 -m http.server 8080 --bind 127.0.0.1 --directory dist
 ```
 
-Откройте [каталог](http://127.0.0.1:8080/) или [приложение макетов](http://127.0.0.1:8080/mockups/). Файл данных для демонстрации настроек отдаётся локальным HTTP-сервером. Интеграция с сервисом и проверка физических кнопок и дисплея BOX идут отдельно.
+| Директория | Содержимое |
+| --- | --- |
+| [library](library/) | Атомы, составные компоненты и типы пакета |
+| [tokens](tokens/) | Семантические токены и проверка контраста |
+| [components](components/) | Описания составных блоков с привязкой к атомам |
+| [catalog](catalog/) | Каталог и конструктор на публичном API пакета |
+| [docs](docs/) | [Правила компонентов](docs/components.md) и [токенов](docs/tokens.md) |
+| [specs](specs/) | [Контракт поставки](specs/001-pulse-library/spec.md) |
 
-## Публикация
-
-GitHub Actions устанавливает зависимости по lock-файлу, проверяет токены и TypeScript, собирает пакет, каталог и приложение макетов. Коммит в `main` публикует каталог в корне Pages, полноэкранные примеры в `/mockups/`, архив пакета в `/downloads/`. Pull request проходит проверки без публикации. [Конфигурация CI](.github/workflows/pages.yml).
-
-Изображение платы адаптировано из проекта [Espressif ESP-BOX](https://github.com/espressif/esp-box/blob/master/docs/_static/esp32_s3_box_3.png). На дисплей наложен знак Nearic. [Лицензия изображения](notices/espressif-esp-box-LICENSE).
+Pull request проходит сборку и проверку архива. После слияния в `main` GitHub Pages публикует каталог и npm-архив из одной ревизии. [Workflow публикации](.github/workflows/pages.yml)

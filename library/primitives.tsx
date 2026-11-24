@@ -114,15 +114,6 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(function Link
   return <a {...props} ref={ref} className={cls('nr-link', className)}/>;
 });
 
-export interface TextFieldProps extends InputProps {
-  type?: 'text' | 'email' | 'search' | 'url' | 'tel' | 'password';
-}
-export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
-  {label, className, type='text', ...props}, ref
-) {
-  return <input {...props} ref={ref} type={type} aria-label={label} className={cls('nr-field', className)}/>;
-});
-
 export type LayoutProps = React.HTMLAttributes<HTMLDivElement>;
 export const Row = React.forwardRef<HTMLDivElement, LayoutProps>(function Row({className, ...props}, ref) {
   return <div {...props} ref={ref} className={cls('nr-row', className)}/>;

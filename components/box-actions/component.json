@@ -12,7 +12,6 @@
   ],
   "kind": "pattern",
   "uses": [
-    "text",
     "button",
     "row"
   ]

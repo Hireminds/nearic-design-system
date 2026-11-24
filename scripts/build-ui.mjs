@@ -1,7 +1,8 @@
 import { build } from 'esbuild';
-import { mkdir, cp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, cp, readFile, writeFile, rm } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 
+await rm('library/dist', { recursive: true, force: true });
 await mkdir('library/dist', { recursive: true });
 await build({
   entryPoints: ['library/index.tsx'],

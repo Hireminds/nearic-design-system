@@ -1,6 +1,6 @@
 import {useEffect, useState, type ComponentProps} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Button, Icon, Row, Switch, Text} from '@nearic/ui';
+import {Button, Icon, Row, Switch, Text} from '@nearic/ui-box';
 
 // @example-start
 type SettingProps = {
@@ -28,7 +28,6 @@ function SettingRow({iconName, tone, label, control, checked, variant, disabled}
 }
 // @example-end
 
-type Platform = 'desktop' | 'mobile' | 'box';
 const initial: SettingProps = {
   iconName: 'bell', tone:'inherit', label: 'Уведомления', control: 'switch',
   variant: 'primary', checked: true, disabled: false
@@ -41,26 +40,26 @@ const tones = {inherit:'Основной', network:'Сеть', sound:'Звук',
 const variants = {primary:'Основная', secondary:'Вторичная', quiet:'Текстовая', destructive:'Опасное действие'};
 let lastSettings = initial;
 
-function snippet(model: SettingProps, platform: Platform): string {
+function snippet(model: SettingProps): string {
   const {builderRecipe} = (window as unknown as {catalogData:{builderRecipe:string}}).catalogData;
   return [
     'import {useState, type ComponentProps} from "react";',
-    'import {Button, Icon, Row, Switch, Text} from "@nearic/ui";',
-    'import "@nearic/ui/styles.css";',
+    'import {Button, Icon, Row, Switch, Text} from "@nearic/ui-box";',
+    'import "@nearic/ui-box/styles.css";',
     '',builderRecipe,'',
     'export default function Example() {',
     '  return (',
-    '    <div data-family="'+(platform==='box'?'box':'web')+'" data-platform="'+platform+'">',
+    '    <div data-family="box">',
     '      <SettingRow {...'+JSON.stringify(model,null,2).split('\n').join('\n      ')+'} />',
     '    </div>', '  );','}'
   ].join('\n');
 }
-function Builder({platform}:{platform:Platform}) {
+function Builder() {
   const [settings, setSettings] = useState<SettingProps>(lastSettings);
   const [copyStatus,setCopyStatus] = useState('');
   useEffect(()=>{lastSettings=settings;setCopyStatus('');},[settings]);
   const model = {...settings, label: settings.label.trim() || initial.label};
-  const code = snippet(model,platform);
+  const code = snippet(model);
   function change<K extends keyof SettingProps>(key: K, value: SettingProps[K]) {
     setSettings(prev=>({...prev,[key]:value}));
   }
@@ -108,8 +107,8 @@ function Builder({platform}:{platform:Platform}) {
     </div>
   </>;
 }
-export function mountBuilder(host: HTMLElement, platform: Platform): () => void {
+export function mountBuilder(host: HTMLElement): () => void {
   const root = createRoot(host);
-  root.render(<Builder platform={platform}/>);
+  root.render(<Builder/>);
   return () => root.unmount();
 }

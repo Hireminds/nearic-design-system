@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
+import { Variants } from './variants';
 import {
-  Button, DeviceCard, DecisionActions, Icon, IconButton, Link, NetworkRow, Progress, Row,
-  SettingRow, Slider, Stack, StatusIndicator, Switch, Text, TextField, VolumeControl, iconNames,
+  Button, DecisionActions, Icon, IconButton, Link, NetworkRow, Progress, Row,
+  Slider, Stack, StatusIndicator, Switch, Text, VolumeControl, iconNames,
   type IconName, type Tone
-} from '@nearic/ui';
+} from '@nearic/ui-box';
 
 const iconLabels: Record<IconName,string> = {
   wifi:'Wi-Fi', volume:'Звук', minus:'Убавить', plus:'Прибавить', message:'Разговор', back:'Назад',
@@ -29,7 +30,7 @@ function Connectivity({value, onChange}: {value:boolean; onChange:(online:boolea
   </div></Tools>;
 }
 
-function ResponseSample({box}: {box:boolean}) {
+function ResponseSample() {
   const [result,setResult]=React.useState('');
   const resetRef=React.useRef<HTMLButtonElement>(null);
   const controlsRef=React.useRef<HTMLDivElement>(null);
@@ -42,14 +43,14 @@ function ResponseSample({box}: {box:boolean}) {
   },[result]);
   const choose=(choice:'primary'|'secondary')=>{
     moveFocus.current=true;
-    setResult(choice==='secondary'?'Отложено':box?'Запущено':'Разрешено');
+    setResult(choice==='secondary'?'Отложено':'Запущено');
   };
   return <><div className="nr-sample-area" ref={controlsRef}>
     <Stack className="nr-sample-decision">
-      {box && <Text variant="title">Запустить тесты?</Text>}
-      <DecisionActions onDecision={choose} primaryLabel={box?'Запустить':'Разрешить'} disabled={!!result}/>
+      <Text variant="title">Запустить тесты?</Text>
+      <DecisionActions onDecision={choose} disabled={!!result}/>
     </Stack>
-  </div><Tools><output data-feedback aria-live="polite">{result || (box?'Ожидается ответ':'Ожидается')}</output>
+  </div><Tools><output data-feedback aria-live="polite">{result || 'Ожидается ответ'}</output>
     <button className="small-text" data-reset type="button" ref={resetRef} disabled={!result}
       onClick={()=>{moveFocus.current=true;setResult('')}}>Сбросить</button>
   </Tools></>;
@@ -57,25 +58,12 @@ function ResponseSample({box}: {box:boolean}) {
 
 function PatternSample({id}:{id:string}) {
   const [online,setOnline]=React.useState(true);
-  const [checked,setChecked]=React.useState(true);
   const [volume,setVolume]=React.useState(60);
-  if (id==='device-card') return <>
-    <DeviceCard name="Студия" conversation="Релиз приложения" online={online} imageSrc="./assets/box.webp"/>
-    <Connectivity value={online} onChange={setOnline}/>
-  </>;
   if (id==='box-network') return <><div className="nr-sample-area"><NetworkRow value="Домашняя" online={online}/></div>
     <Connectivity value={online} onChange={setOnline}/></>;
-  if (id==='action-button' || id==='box-actions') return <ResponseSample box={id==='box-actions'}/>;
+  if (id==='box-actions') return <ResponseSample/>;
   if (id==='box-volume') return <><div className="nr-sample-area"><VolumeControl value={volume} onChange={setVolume}/></div>
     <Tools><span>Шаг</span><span>10%</span></Tools></>;
-  if (id==='setting-switch') return <>
-    <div className="nr-sample-area"><SettingRow label="Уведомления" checked={checked} onChange={e=>setChecked(e.target.checked)}
-      disabled={!online} description={online?(checked?'Включены на BOX':'Выключены на BOX'):'BOX вне сети'}/></div>
-    <Tools><span>Доступность</span><div className="choice">
-      <Choice data-switch-available="yes" label="Активен" active={online} onClick={()=>setOnline(true)}/>
-      <Choice data-switch-available="no" label="Заблокирован" active={!online} onClick={()=>setOnline(false)}/>
-    </div></Tools>
-  </>;
   return null;
 }
 
@@ -85,7 +73,6 @@ function AtomSample({id}:{id:string}) {
   const [disabled,setDisabled]=React.useState(false);
   const [indeterminate,setIndeterminate]=React.useState(false);
   const [answer,setAnswer]=React.useState('');
-  const family=document.documentElement.dataset.platform || 'desktop';
   let content: React.ReactNode;
   switch (id) {
     case 'icon':
@@ -118,10 +105,8 @@ function AtomSample({id}:{id:string}) {
     case 'status-indicator':
       content=<Stack><StatusIndicator tone="success">На связи</StatusIndicator><StatusIndicator>Вне сети</StatusIndicator>
         <StatusIndicator tone="warning">Нужен ответ</StatusIndicator><StatusIndicator tone="error">Ошибка</StatusIndicator></Stack>; break;
-    case 'text-field':
-      content=<Stack><label className="nr-sample-input"><Text variant="label">Имя устройства</Text><TextField label="Имя устройства" placeholder="Название" defaultValue="Студия" disabled={disabled}/></label><Button variant="quiet" onClick={()=>setDisabled(!disabled)}>{disabled?'Включить':'Заблокировать'}</Button></Stack>; break;
     case 'link':
-      content=<Link href={'#'+family+'/foundations'}>Открыть основы</Link>; break;
+      content=<Link href="#box/foundations">Открыть основы</Link>; break;
     case 'row':
       content=<Row><Icon name="wifi" tone="network"/><Text>Wi-Fi</Text><StatusIndicator tone="success">На связи</StatusIndicator></Row>; break;
     case 'stack':
@@ -134,7 +119,7 @@ function AtomSample({id}:{id:string}) {
 const mounted=new WeakMap<HTMLElement,{root:Root; owner:symbol}>();
 /** Mount the catalog samples inside a freshly rendered catalog pane. Dispose before replacing it. */
 export function mountSamples(container: HTMLElement): () => void {
-  const selector='[data-atom-demo], [data-pattern-demo]';
+  const selector='[data-atom-demo], [data-pattern-demo], [data-state-demo]';
   const elements=Array.from(container.querySelectorAll<HTMLElement>(selector));
   if (container.matches(selector)) elements.unshift(container);
   const owner=Symbol();
@@ -142,7 +127,10 @@ export function mountSamples(container: HTMLElement): () => void {
     for (const element of elements) {
       const root=mounted.get(element)?.root ?? createRoot(element);
       mounted.set(element,{root,owner});
-      root.render(element.dataset.atomDemo ? <AtomSample id={element.dataset.atomDemo}/> : <PatternSample id={element.dataset.patternDemo ?? ''}/>);
+      const {atomDemo, patternDemo, stateDemo} = element.dataset;
+      if (atomDemo) root.render(<AtomSample id={atomDemo}/>);
+      if (patternDemo) root.render(<PatternSample id={patternDemo}/>);
+      if (stateDemo) root.render(<Variants id={stateDemo}/>);
     }
   });
   return ()=>{

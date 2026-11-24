@@ -1,4 +1,4 @@
-name: Build UI and deploy Pages
+name: Build BOX catalog and package
 on:
   pull_request:
   push:
@@ -38,6 +38,6 @@ jobs:
       group: github-pages
       cancel-in-progress: false
     steps:
-      - name: Deploy catalog and mockups
+      - name: Deploy BOX catalog and package
         id: deployment
         uses: actions/deploy-pages@v4

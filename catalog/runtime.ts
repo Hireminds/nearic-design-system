@@ -1,2 +1,2 @@
-export {mountSamples} from '../library/samples';
+export {mountSamples} from './samples';
 export {mountBuilder} from './builder';
