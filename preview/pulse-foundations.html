@@ -173,6 +173,13 @@ h3 {letter-spacing:-.025em; font-size:17px; font-weight:600}
 .spec-line {margin:0; display:flex; align-items:baseline; justify-content:space-between; gap:var(--s3); padding:var(--s2) 0; border-top:1px solid var(--line); font-size:var(--type-control)}
 .spec-line dt {color:var(--subtle)}
 .spec-line dd {margin:0}
+.box-token-list {margin:0; display:grid; gap:var(--s2)}
+.box-token-list .token-row {margin:0}
+.box-token-list dt {display:flex; align-items:center; gap:var(--s2)}
+.box-token-list dd {margin:0}
+.box-token-list .type-demo {line-height:1.15}
+.box-token-list .space-demo {display:inline-block; width:var(--demo); height:16px; flex:none; background:color-mix(in srgb,var(--mint) 25%,var(--canvas)); border-inline:1px solid var(--mint)}
+.box-token-list .radius-demo {display:inline-block; width:36px; height:30px; flex:none; background:var(--surface); border:1px solid var(--subtle); border-radius:0 var(--demo) 0 0}
 @container samples (max-width:440px) {
   .device {min-height:222px}
   .device-copy {padding:var(--s3); width:57%}
@@ -268,6 +275,19 @@ h3 {letter-spacing:-.025em; font-size:17px; font-weight:600}
     </section>
     <aside id="box-tokens" aria-labelledby="box-tokens-title"><div class="sectionhead"><h2 id="box-tokens-title">Токены BOX</h2></div>
       <section class="token-group" id="box-colors" hidden><h3>Цвет</h3><div class="palette" id="box-palette"></div></section>
+      <section class="token-group" id="box-type" hidden><h3>Типографика</h3><dl class="box-token-list">
+        <div class="token-row" data-read="h1" data-property="fontSize"><dt class="type-demo">Заголовок</dt><dd class="value"></dd></div>
+        <div class="token-row" data-read=".message p" data-property="fontSize"><dt class="type-demo">Сообщение</dt><dd class="value"></dd></div>
+        <div class="token-row" data-read=".nav" data-property="fontSize"><dt class="type-demo">Навигация</dt><dd class="value"></dd></div>
+      </dl></section>
+      <section class="token-group" id="box-space" hidden><h3>Отступы</h3><dl class="box-token-list">
+        <div class="token-row" data-read=".answers" data-property="columnGap"><dt><i class="space-demo" aria-hidden="true"></i>Между ответами</dt><dd class="value"></dd></div>
+        <div class="token-row" data-read=".answers" data-property="left"><dt><i class="space-demo" aria-hidden="true"></i>От края экрана</dt><dd class="value"></dd></div>
+      </dl></section>
+      <section class="token-group" id="box-radius" hidden><h3>Скругления</h3><dl class="box-token-list">
+        <div class="token-row" data-read=".answers button" data-property="borderTopRightRadius"><dt><i class="radius-demo" aria-hidden="true"></i>Кнопка ответа</dt><dd class="value"></dd></div>
+        <div class="token-row" data-read=".sound" data-property="borderTopRightRadius"><dt><i class="radius-demo" aria-hidden="true"></i>Карточка громкости</dt><dd class="value"></dd></div>
+      </dl></section>
       <dl><div class="spec-line"><dt>Поверхность</dt><dd>Экран устройства</dd></div><div class="spec-line"><dt>Разрешение</dt><dd>320 × 240 px</dd></div></dl>
     </aside>
   </div>
@@ -359,6 +379,22 @@ boxFrame.addEventListener('load', () => {
     if (color) colorChip(boxPalette, label, color);
   }
   $('#box-colors').hidden = !boxPalette.childElementCount;
+  for (const row of document.querySelectorAll('#box-tokens [data-read]')) {
+    const source = doc.querySelector(row.dataset.read);
+    if (!source) continue;
+    const styles = doc.defaultView.getComputedStyle(source);
+    const length = styles[row.dataset.property];
+    const label = row.querySelector('dt');
+    row.style.setProperty('--demo', length);
+    if (label.classList.contains('type-demo')) {
+      label.style.fontFamily = styles.fontFamily;
+      label.style.fontSize = length;
+      label.style.fontWeight = styles.fontWeight;
+      label.style.letterSpacing = styles.letterSpacing;
+    }
+    row.querySelector('dd').textContent = px(length);
+    row.closest('section').hidden = false;
+  }
 });
 function sizeFrame() {
   if (frameHolder.clientWidth) frameHolder.style.setProperty('--frame-scale', String(frameHolder.clientWidth / 320));
@@ -380,7 +416,7 @@ function setProfile(profile) {
 function readProfile() {
   const hash = location.hash.slice(1);
   if (Object.hasOwn(profileNames,hash)) setProfile(hash);
-  else if (['box-tokens','box-samples','box-colors'].includes(hash)) setProfile('device');
+  else if (['box-tokens','box-samples','box-colors','box-type','box-space','box-radius'].includes(hash)) setProfile('device');
   else if (!document.body.dataset.profile) setProfile(matchMedia('(max-width: 700px)').matches ? 'mobile':'desktop');
 }
 readProfile();
