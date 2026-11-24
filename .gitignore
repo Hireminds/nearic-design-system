@@ -3,3 +3,10 @@ node_modules/
 /packages/*/dist/
 *.tgz
 __pycache__/
+
+/.specify/assessments/
+/.specify/bugs/
+/.specify/workflows/runs/
+/.specify/workflows/.cache/
+/.specify/extensions/.cache/
+/.specify/.workflow-install.lock
