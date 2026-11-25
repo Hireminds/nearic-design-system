@@ -184,8 +184,7 @@ main {min-width:0;width:100%;max-width:1492px;padding:25px clamp(24px,3.7vw,68px
 .nr-symbols .nr-text { max-width:100%; overflow-wrap:anywhere; }
 .nr-atom-area output { font-variant-numeric:tabular-nums; }
 .storybook {margin-inline-start:auto; padding:8px 0; font-size:14px; font-weight:600}
-.storybook:hover,.stories-link:hover {color:var(--lime)}
-.stories-link {display:inline-block; margin-block:14px; color:var(--colors-info); text-decoration:underline; text-underline-offset:.2em}
+.storybook:hover {color:var(--lime)}
 .state-grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr)); gap:12px; margin-top:16px}
 .state-grid figure {margin:0; min-inline-size:0; border:1px solid var(--hair); border-radius:10px; background:var(--colors-canvas)}
 .state-grid figcaption {padding:10px 13px 0; font-size:13px; line-height:1.4; font-weight:500; color:var(--secondary)}

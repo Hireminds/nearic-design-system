@@ -12,8 +12,8 @@ const meta = {
     label, min: numeric('Нижняя граница.', { initial: '0', type: 'number | string' }),
     max: numeric('Верхняя граница.', { initial: '100', type: 'number | string' }),
     step: numeric('Шаг между значениями.', { initial: '1', type: 'number | string' }),
-    value: numeric('Значение в управляемом режиме.', { type: 'number | string | readonly string[]' }),
-    defaultValue: numeric('Начальное значение в неуправляемом режиме. По умолчанию браузер берёт середину диапазона.', { type: 'number | string | readonly string[]' }),
+    value: numeric('Значение в управляемом режиме. Передавайте без defaultValue.', { type: 'number | string' }),
+    defaultValue: numeric('Начальное значение. Передавайте без value. По умолчанию браузер берёт середину диапазона.', { type: 'number | string' }),
     onChange: changeInput, disabled, className,
   },
   render: function Preview(args) {

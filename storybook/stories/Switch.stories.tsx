@@ -9,8 +9,8 @@ const meta = {
   parameters: docs('Двоичный переключатель с круглым бегунком и доступной областью касания. Укажите checked и onChange для управляемого режима или задайте только defaultChecked для начального положения. Tab переводит фокус, пробел меняет состояние.'),
   args: { label: 'Уведомления', checked: false, disabled: false, onChange: fn() },
   argTypes: {
-    label, checked: bool('Управляемое значение. Изменения передаются через onChange.'),
-    defaultChecked: bool('Начальное значение неуправляемого переключателя.', 'false'),
+    label, checked: bool('Управляемое состояние. Передавайте без defaultChecked. Изменения передаются через onChange.'),
+    defaultChecked: bool('Начальное состояние неуправляемого переключателя. Передавайте без checked.', 'false'),
     disabled, onChange: changeInput, name: stringProp('Имя поля при отправке формы.'), className,
   },
   render: function Preview(args) {

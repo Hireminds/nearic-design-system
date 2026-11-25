@@ -117,7 +117,11 @@ const displays: Record<string, Variant[]> = {
     ()=><DecisionExample initial=""/>, label=><DecisionExample initial={label}/>,
     label=><DecisionExample initial={label}/>,
   ],
-  'box-network': [()=><NetworkRow online value="Домашняя"/>, ()=><NetworkRow online={false} value=""/>],
+  'box-network': [
+    ()=><NetworkRow online value="Домашняя"/>,
+    ()=><NetworkRow online value="WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"/>,
+    ()=><NetworkRow online={false} value=""/>,
+  ],
   'box-volume': [()=><VolumeExample initial={0}/>, ()=><VolumeExample initial={60}/>, ()=><VolumeExample initial={100}/>],
 };
 

@@ -88,7 +88,30 @@ async function consumer(name, selected, reactArchive) {
       const example = isBox
         ? "import { VolumeControl, Stack } from '@nearic/ui-box'; export const e=<Stack data-family='box'><VolumeControl value={60} onChange={v=>v.toFixed()}/></Stack>;"
         : "import { Switch, Icon } from '@nearic/ui-core'; export const e=<><Switch label='Sound' defaultChecked/><Icon name='wifi'/></>;";
-      await writeFile(path.join(cwd,'example.tsx'),example);
+      const inputContract = `
+        import { Slider, Switch as Toggle } from '${entry}';
+        <Toggle label="Notifications" name="notifications" value="on" defaultChecked />;
+        <Toggle label="Notifications" checked={true} onChange={event => event.currentTarget.checked} />;
+        <Slider label="Volume" min={0} max={100} step="any" defaultValue={50} />;
+        <Slider label="Volume" value="60" onChange={event => event.currentTarget.valueAsNumber} />;
+        // @ts-expect-error Switch has no numeric range.
+        <Toggle label="Notifications" min={0} />;
+        // @ts-expect-error Switch has no numeric range.
+        <Toggle label="Notifications" max={100} />;
+        // @ts-expect-error Switch has no numeric step.
+        <Toggle label="Notifications" step={5} />;
+        // @ts-expect-error Choose either controlled or uncontrolled state.
+        <Toggle label="Notifications" checked={true} defaultChecked={false} />;
+        // @ts-expect-error Slider has no checkbox state.
+        <Slider label="Volume" checked={true} />;
+        // @ts-expect-error Slider has no initial checkbox state.
+        <Slider label="Volume" defaultChecked={false} />;
+        // @ts-expect-error Slider takes a single scalar value.
+        <Slider label="Volume" value={['10', '20']} />;
+        // @ts-expect-error Choose either controlled or uncontrolled value.
+        <Slider label="Volume" value={60} defaultValue={30} />;
+      `;
+      await writeFile(path.join(cwd,'example.tsx'),example + inputContract);
       execFileSync(typescript,['--noEmit','--strict','--jsx','react-jsx','--module','NodeNext','--target','es2022','example.tsx'],{cwd,stdio:'inherit'});
       runtime += `
         const api=await import('${entry}');

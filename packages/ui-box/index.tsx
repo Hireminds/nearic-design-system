@@ -28,7 +28,9 @@ export interface NetworkRowProps {
 export function NetworkRow({value, online, className=''}: NetworkRowProps) {
   return <Row className={'nr-network '+className} data-network={online?'online':'offline'}>
     <Icon name="wifi" tone={online?'network':'inherit'}/><Text>Wi-Fi</Text>
-    <Text variant="label" className="nr-trailing" muted data-field="connection">{online?value:'Вне сети'}</Text>
+    <Text variant="label" className="nr-trailing" muted data-field="connection" title={online ? value : undefined}>
+      {online ? value : 'Вне сети'}
+    </Text>
   </Row>;
 }
 

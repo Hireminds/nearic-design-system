@@ -13,8 +13,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<Icon name=\"wifi\" tone=\"network\" label=\"Wi-Fi\" />"
+    ]
   },
   {
     "id": "text",
@@ -29,8 +28,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<Text variant=\"heading\">Звук</Text>"
+    ]
   },
   {
     "id": "button",
@@ -48,8 +46,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<Button variant=\"primary\">Разрешить</Button>"
+    ]
   },
   {
     "id": "icon-button",
@@ -65,8 +62,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<IconButton name=\"plus\" label=\"Прибавить громкость\" />"
+    ]
   },
   {
     "id": "switch",
@@ -82,8 +78,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<Switch label=\"Уведомления\" defaultChecked />"
+    ]
   },
   {
     "id": "slider",
@@ -100,8 +95,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<Slider label=\"Громкость\" min={0} max={100} step={10} defaultValue={60} />"
+    ]
   },
   {
     "id": "progress",
@@ -117,8 +111,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<Progress label=\"Громкость\" value={60} max={100} />"
+    ]
   },
   {
     "id": "status-indicator",
@@ -134,8 +127,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<StatusIndicator tone=\"success\">На связи</StatusIndicator>"
+    ]
   },
   {
     "id": "link",
@@ -149,8 +141,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<Link href=\"#box/foundations\">Основы</Link>"
+    ]
   },
   {
     "id": "row",
@@ -164,8 +155,7 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<Row><Icon name=\"wifi\" tone=\"network\" /><Text>Wi-Fi</Text></Row>"
+    ]
   },
   {
     "id": "stack",
@@ -179,7 +169,6 @@
     ],
     "families": [
       "box"
-    ],
-    "code": "<Stack><Text>Громкость</Text><Progress label=\"Громкость\" value={60} /></Stack>"
+    ]
   }
 ]

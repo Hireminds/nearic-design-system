@@ -10,10 +10,10 @@
 
 ## Установка
 
-Выберите пакет нужного уровня из [релиза v0.1.0-preview.2](https://github.com/Hireminds/nearic-design-system/releases/tag/v0.1.0-preview.2). UI-архив включает свои зависимости Nearic той же версии. Для интерфейса BOX установите в приложении с React один архив.
+Выберите пакет нужного уровня из [релиза v0.1.0-preview.3](https://github.com/Hireminds/nearic-design-system/releases/tag/v0.1.0-preview.3). UI-архив включает свои зависимости Nearic той же версии. Для интерфейса BOX установите в приложении с React один архив.
 
 ```sh
-npm install https://github.com/Hireminds/nearic-design-system/releases/download/v0.1.0-preview.2/nearic-ui-box-0.1.0-preview.2.tgz
+npm install https://github.com/Hireminds/nearic-design-system/releases/download/v0.1.0-preview.3/nearic-ui-box-0.1.0-preview.3.tgz
 ```
 
 ```tsx
@@ -33,7 +33,7 @@ export function SoundSettings() {
 Если приложению нужны общие примитивы и собственная тема, объявите оба прямых импорта как зависимости.
 
 ```sh
-npm install https://github.com/Hireminds/nearic-design-system/releases/download/v0.1.0-preview.2/nearic-tokens-0.1.0-preview.2.tgz https://github.com/Hireminds/nearic-design-system/releases/download/v0.1.0-preview.2/nearic-ui-core-0.1.0-preview.2.tgz
+npm install https://github.com/Hireminds/nearic-design-system/releases/download/v0.1.0-preview.3/nearic-tokens-0.1.0-preview.3.tgz https://github.com/Hireminds/nearic-design-system/releases/download/v0.1.0-preview.3/nearic-ui-core-0.1.0-preview.3.tgz
 ```
 
 ```tsx

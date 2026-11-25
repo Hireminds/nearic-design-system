@@ -12,5 +12,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Primary: Story = {};
+export const Secondary: Story = { args: { children: 'Позже', variant: 'secondary' } };
+export const Quiet: Story = { args: { children: 'Отмена', variant: 'quiet' } };
 export const Destructive: Story = { args: { children: 'Удалить', variant: 'destructive' } };
 export const Disabled: Story = { args: { disabled: true } };

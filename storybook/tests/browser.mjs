@@ -7,14 +7,15 @@ import { chromium } from 'playwright';
 import { expect } from 'playwright/test';
 import * as box from '@nearic/ui-box';
 
-const directory = fileURLToPath(new URL('../../dist/storybook/', import.meta.url));
-const prefix = '/nearic-design-system/storybook/';
+const directory = fileURLToPath(new URL('../../dist/', import.meta.url));
+const prefix = '/nearic-design-system/';
 const types = { '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.html': 'text/html', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (!url.pathname.startsWith(prefix)) { res.writeHead(404).end(); return; }
-  const relative = decodeURIComponent(url.pathname.slice(prefix.length)) || 'index.html';
-  const file = path.resolve(directory, relative);
+  const relative = decodeURIComponent(url.pathname.slice(prefix.length));
+  const requestedFile = relative.endsWith('/') || relative === '' ? relative + 'index.html' : relative;
+  const file = path.resolve(directory, requestedFile);
   if (!file.startsWith(directory)) { res.writeHead(404).end(); return; }
   try {
     const data = await readFile(file);
@@ -56,7 +57,8 @@ async function checkSwitchShape(control) {
 }
 
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-const base = 'http://127.0.0.1:' + server.address().port + prefix;
+const catalog = 'http://127.0.0.1:' + server.address().port + prefix;
+const base = catalog + 'storybook/';
 let browser;
 try {
   const legacyCSS = process.argv[2] && await readFile(process.argv[2], 'utf8');
@@ -103,13 +105,48 @@ try {
     const docs = group.find(entry => entry.type === 'docs'), story = group.find(entry => entry.type === 'story');
     assert(docs && story, 'Missing documentation or live example for ' + component);
     await direct(docs.id, 'docs');
-    await expect(page.getByRole('heading', { name: 'Свойства', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Свойства', exact: true }), docs.id).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('table').first()).toContainText('Default');
     await expect(page.getByRole('heading', { name: 'Пример TSX' })).toBeVisible();
     await expect(page.locator('pre').filter({ hasText: 'from' }).first()).toContainText('@nearic/ui-box');
     await direct(story.id);
     await expect(page.locator('#storybook-root [data-family="box"][data-platform="box"]').first()).toBeVisible();
   }
+
+  await page.goto(catalog);
+  const componentPages = page.locator('.nav-entries a[href^="#box/atoms/"], .nav-entries a[href^="#box/components/"]');
+  await expect(componentPages).toHaveCount(components.length);
+  const routes = await componentPages.evaluateAll(links => links.map(link => link.href));
+  const catalogDocs = [];
+  for (const route of routes) {
+    await page.goto(route);
+    const link = page.getByRole('link', { name: 'Свойства и TSX в Storybook' });
+    await expect(link).toBeVisible();
+    catalogDocs.push(await link.evaluate(element => new URL(element.href).searchParams.get('path')));
+  }
+  assert.deepEqual(catalogDocs.sort(), entries.filter(entry => entry.type === 'docs').map(entry => '/docs/' + entry.id).sort());
+
+  await page.setViewportSize({ width: 320, height: 240 });
+  const ssid = 'W'.repeat(32);
+  await direct('box-networkrow--long-name');
+  const network = page.locator('.nr-network');
+  const networkName = network.locator('[data-field=connection]');
+  await expect(network).toBeVisible();
+  await expect(networkName).toHaveText(ssid);
+  await expect(networkName).toHaveAttribute('title', ssid);
+  await expect(networkName).toHaveCSS('text-overflow', 'ellipsis');
+  assert.match(await network.ariaSnapshot(), new RegExp(ssid));
+  const sizes = await network.evaluate(row => {
+    const name = row.querySelector('[data-field=connection]');
+    const rowBounds = row.getBoundingClientRect();
+    const nameBounds = name.getBoundingClientRect();
+    return { rowRight: rowBounds.right, nameRight: nameBounds.right, nameLength: name.scrollWidth, nameWidth: name.clientWidth };
+  });
+  assert(sizes.nameRight <= sizes.rowRight && sizes.nameLength > sizes.nameWidth, 'Long SSID must be visibly clipped inside the Wi-Fi row');
+  await direct('box-networkrow--offline');
+  await expect(networkName).toHaveText('Вне сети');
+  await expect(networkName).not.toHaveAttribute('title', /.+/);
+  await page.setViewportSize({ width: 1280, height: 960 });
 
   await page.goto(base + '?path=/story/box-iconbutton--variants');
   const preview = page.frameLocator('#storybook-preview-iframe');
@@ -140,7 +177,7 @@ try {
   await managerSwitch.click(); await expect(page.locator('#control-checked')).not.toBeChecked();
   await page.locator('#control-disabled').press('Space'); await expect(managerSwitch).toBeDisabled();
   assert.deepEqual(errors, []);
-  console.log('14 typed components with Docs and live samples. Switch geometry, keyboard, disabled states and manager Controls passed.');
+  console.log('14 typed components with Docs, catalog links and live samples. Switch geometry, long SSID at 320px, keyboard, disabled states and Controls passed.');
   await context.close();
 } finally {
   await browser?.close();

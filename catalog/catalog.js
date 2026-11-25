@@ -2,6 +2,11 @@ import {mountSamples, mountBuilder} from './runtime.js';
 
 const {tokens, atoms, components} = window.catalogData;
 const chapters = {atoms:'Атомы', builder:'Конструктор', components:'Составные блоки', foundations:'Основы'};
+const patternStoryIds = {
+  'box-actions': 'decisionactions',
+  'box-network': 'networkrow',
+  'box-volume': 'volumecontrol',
+};
 const groups = {
   colors:'Цвета', type:'Типографика', space:'Отступы', radius:'Скругления',
   size:'Размеры и касание', motion:'Движение', opacity:'Прозрачность'
@@ -101,18 +106,17 @@ function overview() {
     '<section class="foundations-overview">'+partHeading('Основы',route('foundations'),'Все токены')+'<div class="quick-links">'+Object.keys(tokens.box).map(key=>'<a href="'+route('foundations',key)+'">'+groups[key]+'</a>').join('')+'</div></section>';
 }
 function itemPage(item, section) {
-  let code = '';
-  if (item.code) code = '<h2>Код</h2><pre class="code"><code>'+safeText(item.code)+'</code></pre>';
-  const stories = item.id === 'icon-button' ? '<a class="stories-link" href="./storybook/?path=/story/box-iconbutton--variants">Варианты в Storybook</a>' : '';
+  const storyId = patternStoryIds[item.id] ?? item.id.replaceAll('-', '');
+  const storybook = './storybook/?path=/docs/box-'+storyId+'--docs';
   const parts = (item.uses || []).map(id => {
     const atom = atoms.find(a => a.id === id);
     return '<a href="'+route('atoms',id)+'">'+atom.name+'</a>';
   });
   return pageTitle(item.name,item.summary,'<span class="proposal">Предложение</span>')+
-    '<div class="detail-container">'+partHeading('Живой пример')+sample(item,section)+'<section class="details">'+
+    '<div class="detail-container">'+partHeading('Живой пример',storybook,'Свойства и TSX в Storybook')+sample(item,section)+'<section class="details">'+
     (parts.length?'<h2>Из чего собран</h2><div class="quick-links">'+parts.join('')+'</div>':'')+
     '<h2>Применение</h2><p>'+item.usage+'</p><h2>Состояния и варианты</h2></section>'+
-    '<div data-state-demo="'+item.id+'"></div>'+stories+(code?'<section class="details">'+code+'</section>':'')+'</div>';
+    '<div data-state-demo="'+item.id+'"></div></div>';
 }
 function itemIndex(section) {
   const items = sectionItems(section);

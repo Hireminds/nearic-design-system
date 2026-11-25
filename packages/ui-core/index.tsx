@@ -74,15 +74,21 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
     variant={variant}><Icon name={name}/></Button>;
 });
 
-type InputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'children'> & {label: string};
-export type SwitchProps = InputProps;
+type LabeledInputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'children'> & {label: string};
+export type SwitchProps = Omit<LabeledInputProps, 'checked' | 'defaultChecked' | 'min' | 'max' | 'step'> & (
+  | { checked?: boolean; defaultChecked?: never }
+  | { checked?: never; defaultChecked?: boolean }
+);
 export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(function Switch(
   {label, className, ...props}, ref
 ) {
   return <input {...props} ref={ref} type="checkbox" role="switch" aria-label={label} className={cls('nr-switch', className)}/>;
 });
 
-export type SliderProps = InputProps;
+export type SliderProps = Omit<LabeledInputProps, 'checked' | 'defaultChecked' | 'value' | 'defaultValue'> & (
+  | { value?: number | string; defaultValue?: never }
+  | { value?: never; defaultValue?: number | string }
+);
 export const Slider = React.forwardRef<HTMLInputElement, SliderProps>(function Slider(
   {label, className, ...props}, ref
 ) {

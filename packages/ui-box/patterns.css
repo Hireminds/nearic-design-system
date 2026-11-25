@@ -7,6 +7,13 @@
   padding:var(--space-inline) var(--space-inset); background:var(--colors-surface); color:var(--colors-text);
 }
 .nr-network { flex-wrap:nowrap; min-height:var(--size-touch); }
+.nr-network > :not(.nr-trailing) { flex-shrink: 0; }
+.nr-network .nr-trailing {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .nr-trailing { margin-inline-start:auto; }
 .nr-volume { align-items:stretch; }
 .nr-volume-title { flex-wrap:nowrap; }
