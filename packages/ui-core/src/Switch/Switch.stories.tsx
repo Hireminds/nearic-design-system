@@ -1,5 +1,5 @@
 import { showFocus } from '../../../../storybook/stories/showFocus';
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
@@ -8,7 +8,7 @@ import { bool, changeInput, className, docs, label, stringProp } from '../../../
 
 const meta = {
   title: 'BOX/Switch', component: Switch,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { label: 'Уведомления', checked: false, disabled: false, onChange: fn() },
   argTypes: {
     label, checked: bool('Управляемое состояние. Передавайте без defaultChecked. Изменения передаются через onChange.'),

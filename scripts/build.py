@@ -19,13 +19,18 @@ tokens = {"box": {
 }}
 if any({entry["key"] for entry in notes[group]} != set(values) for group, values in box.items()):
     raise ValueError("Every device token must have a catalog entry")
+
+
 def load_components(package):
     result = []
     for metadata in sorted((ROOT / "packages" / package / "src").glob("*/component.json")):
         name = metadata.parent.name
         if not metadata.with_name(f"{name}.stories.tsx").is_file():
             raise ValueError(f"Missing stories for {name}")
-        result.append({**read(metadata), "component": name})
+        usage = metadata.with_name("docs.md").read_text(encoding="utf-8").strip()
+        if not usage:
+            raise ValueError(f"Missing usage guidance for {name}")
+        result.append({**read(metadata), "component": name, "usage": usage})
     return result
 
 

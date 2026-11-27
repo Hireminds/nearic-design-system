@@ -1,5 +1,5 @@
 import { showFocus } from '../../../../storybook/stories/showFocus';
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
@@ -8,7 +8,7 @@ import { changeInput, className, docs, label, numeric } from '../../../../storyb
 
 const meta = {
   title: 'BOX/Slider', component: Slider,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { label: 'Яркость', min: 0, max: 100, step: 5, value: 60, disabled: false, onChange: fn() },
   argTypes: {
     label, min: numeric('Нижняя граница.', { initial: '0', type: 'number | string' }),

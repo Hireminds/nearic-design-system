@@ -1,5 +1,5 @@
 import { showFocus } from '../../../../storybook/stories/showFocus';
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import { Button } from '@nearic/ui-box';
@@ -7,7 +7,7 @@ import { buttonType, children, className, docs, onClick, variantProp } from '../
 
 const meta = {
   title: 'BOX/Button', component: Button,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { children: 'Подтвердить', variant: 'primary', disabled: false, onClick: fn() },
   argTypes: { children, variant: variantProp('primary'), type: buttonType, onClick, className },
 } satisfies Meta<typeof Button>;

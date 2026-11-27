@@ -1,11 +1,11 @@
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Icon, Row, Text, iconNames } from '@nearic/ui-box';
 import { className, docs, size, stringProp, symbol, tone } from '../../../../storybook/stories/props';
 
 const meta = {
   title: 'BOX/Icon', component: Icon,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { name: 'wifi', tone: 'network', size: 'regular' },
   argTypes: { name: symbol, size, tone, label: stringProp('Смысловое название. При отсутствии имени декоративный SVG скрыт от программы чтения с экрана.'), className },
 } satisfies Meta<typeof Icon>;

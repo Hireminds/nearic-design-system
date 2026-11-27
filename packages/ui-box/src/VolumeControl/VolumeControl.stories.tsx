@@ -1,4 +1,4 @@
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
@@ -7,7 +7,7 @@ import { callback, className, docs, numeric, stringProp } from '../../../../stor
 
 const meta = {
   title: 'BOX/VolumeControl', component: VolumeControl,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { value: 60, step: 10, label: 'Громкость', disabled: false, onChange: fn() },
   argTypes: {
     value: numeric('Текущий уровень в процентах.', { required: true }),

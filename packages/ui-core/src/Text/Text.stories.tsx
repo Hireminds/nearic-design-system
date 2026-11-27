@@ -1,11 +1,11 @@
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Text } from '@nearic/ui-box';
 import { bool, children, className, docs, textVariant } from '../../../../storybook/stories/props';
 
 const meta = {
   title: 'BOX/Text', component: Text,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { children: 'Настройки', variant: 'body', muted: false },
   argTypes: { children, variant: textVariant, muted: bool('Использовать цвет вторичного текста.', 'false'), className },
 } satisfies Meta<typeof Text>;

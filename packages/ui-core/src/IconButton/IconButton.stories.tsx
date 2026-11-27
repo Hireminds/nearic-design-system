@@ -1,5 +1,5 @@
 import { showFocus } from '../../../../storybook/stories/showFocus';
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import { IconButton, Row, Stack, Text } from '@nearic/ui-box';
@@ -7,7 +7,7 @@ import { buttonType, className, docs, label, onClick, symbol, variantOptions, va
 
 const meta = {
   title: 'BOX/IconButton', component: IconButton,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { name: 'plus', label: 'Увеличить', variant: 'secondary', disabled: false, onClick: fn() },
   argTypes: { name: symbol, label, variant: variantProp('secondary'), onClick, type: buttonType, className },
 } satisfies Meta<typeof IconButton>;

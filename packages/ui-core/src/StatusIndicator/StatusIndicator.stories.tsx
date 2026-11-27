@@ -1,11 +1,11 @@
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StatusIndicator } from '@nearic/ui-box';
 import { children, className, docs, statusTone } from '../../../../storybook/stories/props';
 
 const meta = {
   title: 'BOX/StatusIndicator', component: StatusIndicator,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { children: 'На связи', tone: 'success' },
   argTypes: { children, tone: statusTone, className },
 } satisfies Meta<typeof StatusIndicator>;

@@ -1,11 +1,11 @@
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Icon, Stack, Text } from '@nearic/ui-box';
 import { children, className, docs } from '../../../../storybook/stories/props';
 
 const meta = {
   title: 'BOX/Stack', component: Stack,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { children: 'Настройки' },
   argTypes: {
     children, className,

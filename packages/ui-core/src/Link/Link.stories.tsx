@@ -1,12 +1,12 @@
 import { showFocus } from '../../../../storybook/stories/showFocus';
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Link } from '@nearic/ui-box';
 import { callback, children, className, docs, stringProp } from '../../../../storybook/stories/props';
 
 const meta = {
   title: 'BOX/Link', component: Link,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { href: '#connection', children: 'К состоянию сети' },
   argTypes: {
     href: stringProp('Адрес назначения или якорь.', true), children,

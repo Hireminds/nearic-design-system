@@ -158,6 +158,7 @@ function overview() {
     '<section class="foundations-overview">'+partHeading('Основы',route('foundations'),'Все токены')+'<div class="quick-links">'+Object.keys(tokens.box).map(key=>'<a href="'+route('foundations',key)+'">'+groups[key]+'</a>').join('')+'</div></section>';
 }
 function itemPage(item) {
+  const usage = item.usage.split(/\n\s*\n/).map(text => '<p>'+safeText(text)+'</p>').join('');
   const group = storyGroups.get('BOX/'+item.component);
   const storybook = group?.docs && './storybook/?path=/docs/'+encodeURIComponent(group.docs.id);
   const states = (group?.stories ?? []).map(story =>
@@ -171,7 +172,7 @@ function itemPage(item) {
   return pageTitle(item.name,item.summary,'<span class="proposal">Предложение</span>')+
     '<div class="detail-container">'+partHeading('Живой пример',storybook,'Свойства и TSX в Storybook')+sample(item,true)+'<section class="details">'+
     (parts.length?'<h2>Из чего собран</h2><div class="quick-links">'+parts.join('')+'</div>':'')+
-    '<h2>Применение</h2><p>'+item.usage+'</p><h2>Состояния и варианты</h2></section>'+
+    '<h2>Применение</h2>'+usage+'<h2>Состояния и варианты</h2></section>'+
     '<div class="state-grid">'+states+'</div></div>';
 }
 function itemIndex(section) {

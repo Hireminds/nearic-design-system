@@ -143,6 +143,16 @@ try {
   await sliderControl.press('Home');
   await expect(slider).toHaveValue('0');
 
+  await page.goto(catalog + '#box/components/box-actions');
+  const decision = page.frameLocator('iframe[src*="nearicDemo=1"]');
+  await decision.getByRole('button', { name: 'Запустить', exact: true }).click();
+  const reset = decision.getByRole('button', { name: 'Сбросить', exact: true });
+  await expect(reset).toBeFocused();
+  await expect(decision.locator('[data-feedback]')).toHaveText('Подтверждено');
+  await reset.click();
+  await expect(decision.getByRole('button', { name: 'Позже', exact: true })).toBeFocused();
+  await expect(decision.locator('[data-feedback]')).toHaveText('Ожидается ответ');
+
   await page.goto(catalog + '?lang=en#box/components/box-volume');
   const volume = page.frameLocator('iframe[src*="nearicDemo=1"]');
   await volume.getByRole('button', { name: 'Прибавить громкость' }).click();

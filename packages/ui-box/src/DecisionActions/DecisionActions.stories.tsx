@@ -1,4 +1,4 @@
-import entry from './component.json';
+import usage from './docs.md?raw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import { useLayoutEffect, useRef, useState } from 'react';
@@ -19,9 +19,11 @@ function DecisionSample({initial, setDisabled, ...props}: DecisionActionsProps &
 
   useLayoutEffect(() => {
     if (!moveFocus.current) return;
-    if (answer) reset.current?.focus();
-    else choices.current?.querySelector<HTMLButtonElement>('button:enabled')?.focus();
-    moveFocus.current = false;
+    const next = answer ? reset.current : choices.current?.querySelector<HTMLButtonElement>('button:enabled');
+    if (next) {
+      next.focus();
+      moveFocus.current = false;
+    }
   }, [answer, props.disabled]);
 
   return <Stack>
@@ -42,7 +44,7 @@ function DecisionSample({initial, setDisabled, ...props}: DecisionActionsProps &
 
 const meta = {
   title: 'BOX/DecisionActions', component: DecisionActions,
-  parameters: docs(entry.usage),
+  parameters: docs(usage),
   args: { onDecision: fn(), primaryLabel: 'Запустить', secondaryLabel: 'Позже', primaryVariant: 'primary', secondaryVariant: 'secondary', disabled: false },
   render: function Preview(args, {parameters}) {
     const [, updateArgs] = useArgs();
