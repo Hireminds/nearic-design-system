@@ -113,7 +113,13 @@ export async function checkStaticCatalog(browser, catalog, entries, items) {
     const button = live.locator('.nearic-demo-stage button').first();
     await live.getByRole('textbox', {name:'Content'}).fill('English');
     await expect(button).toHaveText('English');
-    await page.locator('[data-select-story="box-button--focus"]').click();
+    const committed = await page.locator('[data-select-story="box-button--focus"]').evaluate(control => {
+      control.click();
+      return control.getAttribute('aria-pressed') === 'true'
+        && document.querySelector('[data-nearic-live]').dataset.activeStory === control.dataset.selectStory
+        && document.activeElement.closest('[data-nearic-focus-target]') !== null;
+    });
+    assert(committed, 'A selection must commit its story, handlers and focus before the next input event');
     await expect(button).toBeFocused();
     await page.getByRole('navigation').getByRole('link', {name:'Цвета',exact:true}).click();
     await expect(page.getByRole('heading', {name:'Цвета',exact:true,level:1})).toBeVisible();

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { flushSync } from 'react-dom';
 import type { Args, StrictArgTypes } from 'storybook/internal/types';
 import { DemoShowcase } from './DemoControls';
 import { ArgsContext, type ArgStore } from './story-context';
@@ -84,7 +85,11 @@ export function createExamples(csf: CsfModule, config: Config) {
         const next = (event as CustomEvent).detail;
         if (typeof next !== 'string' || !Object.hasOwn(stories, next)) return;
         requestedFocus.current = true;
-        setSelected(previous => ({ id: next, args: stories[next].args, revision: previous.revision + 1 }));
+        // The catalog can immediately send Enter or focus into the newly chosen
+        // example. Commit this discrete command before returning to its caller.
+        flushSync(() => setSelected(previous => ({
+          id: next, args: stories[next].args, revision: previous.revision + 1,
+        })));
       }
       host.addEventListener('nearic:select-story', select);
       host.querySelector<HTMLElement>('[data-nearic-island]')!.inert = false;
@@ -95,11 +100,14 @@ export function createExamples(csf: CsfModule, config: Config) {
     }, [host]);
 
     React.useLayoutEffect(() => {
+      if (!host) return;
+      host.dataset.activeStory = selected.id;
+      host.dispatchEvent(new CustomEvent('nearic:story-selected', { detail: selected.id, bubbles: true }));
       if (requestedFocus.current) {
         requestedFocus.current = false;
         stage.current?.querySelector<HTMLElement>('[data-nearic-focus-target] :is(button,input,a[href])')?.focus({ focusVisible: true } as FocusOptions);
       }
-    }, [selected]);
+    }, [host, selected.id, selected.revision]);
 
     const update = React.useCallback((changes: Args) => {
       setSelected(previous => ({ ...previous, args: { ...previous.args, ...changes } }));
