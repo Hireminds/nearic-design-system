@@ -94,6 +94,8 @@ export function DemoControls({ args, argTypes, labels, updateArgs }: Props) {
   // An optional number can be cleared. Keep its field editable when Storybook drops the empty arg.
   const editedKeys = React.useRef(new Set<string>());
   const live = useLiveArgs(args, updateArgs);
+  const [expanded, setExpanded] = React.useState(false);
+  const fieldsId = React.useId();
 
   for (const [key, arg] of Object.entries(argTypes)) {
     if (!arg.nearic?.labelKey || arg.table?.disable || !arg.control) continue;
@@ -165,9 +167,14 @@ export function DemoControls({ args, argTypes, labels, updateArgs }: Props) {
   }
 
   if (!fields.length && !bounds.length) return null;
-  return <fieldset className="nearic-demo-controls">
-    <legend><Icon name="settings" /><span>{labels['controls.title']}</span></legend>
-    <div className="nearic-demo-fields">
+  const title = labels['controls.title'];
+  return <fieldset className="nearic-demo-controls" aria-label={title}>
+    <legend className="nearic-demo-heading"><Icon name="settings" />{title}</legend>
+    <button className="nearic-demo-disclosure" type="button" aria-expanded={expanded}
+      aria-controls={fieldsId} onClick={() => setExpanded(open => !open)}>
+      <Icon name="settings" />{title}<Icon className="nearic-demo-chevron" name="next" size="small" />
+    </button>
+    <div id={fieldsId} className="nearic-demo-fields">
       {fields.filter(field => field.key !== 'disabled').map(field => field.node)}
       {bounds.length > 0 && <div className="nearic-demo-bounds">
         {constraintKeys.map(key => bounds.find(field => field.key === key)?.node)}
@@ -175,4 +182,12 @@ export function DemoControls({ args, argTypes, labels, updateArgs }: Props) {
       {fields.find(field => field.key === 'disabled')?.node}
     </div>
   </fieldset>;
+}
+
+// The story retains its own platform wrapper and dimensions inside the shared live preview.
+export function DemoShowcase({ children, ...props }: Props & { children: React.ReactNode }) {
+  return <div className="nearic-demo-layout">
+    <div className="nearic-demo-stage">{children}</div>
+    <DemoControls {...props} />
+  </div>;
 }

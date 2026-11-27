@@ -2,7 +2,7 @@
   "controls.default": "По умолчанию",
   "controls.emptyString": "Пустая строка",
   "controls.lock": "Блокировка",
-  "controls.title": "Параметры примера",
+  "controls.title": "Параметры",
   "props.common.checked": "Включён",
   "props.common.children": "Содержимое",
   "props.common.className": "CSS-класс",

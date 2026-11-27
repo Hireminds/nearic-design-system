@@ -2,7 +2,7 @@
   "controls.default": "Default",
   "controls.emptyString": "Empty string",
   "controls.lock": "Lock example",
-  "controls.title": "Example controls",
+  "controls.title": "Parameters",
   "props.common.checked": "Checked",
   "props.common.children": "Content",
   "props.common.className": "CSS class",

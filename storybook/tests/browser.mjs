@@ -130,7 +130,7 @@ try {
   // update the same args, including a boolean inherited from native HTML inputs.
   await page.goto(catalog + '#box/atoms/slider');
   const demo = page.frameLocator('iframe[src*="nearicDemo=1"]');
-  const panel = demo.getByRole('group', { name: 'Параметры примера' });
+  const panel = demo.getByRole('group', { name: 'Параметры', exact: true });
   const slider = demo.getByRole('slider', { name: 'Яркость', exact: true });
   const sliderControl = panel.getByRole('slider', { name: 'Значение', exact: true });
   const lock = panel.getByRole('switch', { name: 'Блокировка', exact: true });
@@ -154,8 +154,26 @@ try {
   await expect(sliderControl).toHaveAttribute('min', '-10');
   await sliderControl.press('Home');
   await expect(slider).toHaveValue('-10');
-  for (const width of [320, 390, 1280]) {
+  // On a roomy canvas the inspector occupies the right column.
+  const stage = demo.locator('.nearic-demo-stage');
+  const area = await stage.boundingBox();
+  const sidebar = await panel.boundingBox();
+  assert(area && sidebar && sidebar.x >= area.x + area.width - 1);
+  assert(sidebar.width >= 279 && sidebar.width <= 321);
+  const toggle = panel.getByRole('button', { name: 'Параметры', exact: true });
+  await expect(toggle).toBeHidden();
+
+  for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 900 });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(minimum).toBeHidden();
+    const compact = await stage.boundingBox();
+    const trigger = await toggle.boundingBox();
+    assert(compact && trigger && trigger.y >= compact.y + compact.height - 1);
+    await toggle.focus();
+    await toggle.press('Enter');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(minimum).toHaveValue('-10');
     await expect.poll(() => panel.evaluate(group => {
       const root = group.ownerDocument.documentElement;
       const bounds = group.getBoundingClientRect();
@@ -165,11 +183,17 @@ try {
           return field.left >= bounds.left - 1 && field.right <= bounds.right + 1;
         });
     }), { message: 'Controls must fit the preview at ' + width + ' px' }).toBe(true);
+    await toggle.press('Space');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(minimum).toBeHidden();
   }
 
   await page.goto(catalog + '#box/atoms/button');
   const buttonDemo = page.frameLocator('iframe[src*="nearicDemo=1"]');
-  const buttonPanel = buttonDemo.getByRole('group', { name: 'Параметры примера' });
+  const buttonPanel = buttonDemo.getByRole('group', { name: 'Параметры', exact: true });
+  const buttonToggle = buttonPanel.getByRole('button', { name: 'Параметры', exact: true });
+  await expect(buttonToggle).toHaveAttribute('aria-expanded', 'false');
+  await buttonToggle.click();
   const caption = buttonPanel.getByRole('textbox', { name: 'Содержимое', exact: true });
   await caption.fill('');
   await caption.pressSequentially('Nearic BOX');
@@ -179,6 +203,15 @@ try {
   await variant.selectOption('destructive');
   await expect(sampleButton).toHaveAttribute('data-variant', 'destructive');
   await buttonPanel.getByRole('switch', { name: 'Блокировка' }).click();
+  await expect(sampleButton).toBeDisabled();
+  await buttonToggle.click();
+  await expect(caption).toBeHidden();
+  await buttonToggle.click();
+  await expect(caption).toHaveValue('Nearic BOX');
+  await expect(variant).toHaveValue('destructive');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(buttonToggle).toBeHidden();
+  await expect(caption).toBeVisible();
   await expect(sampleButton).toBeDisabled();
 
   await page.goto(catalog + '#box/components/box-actions');
@@ -204,6 +237,7 @@ try {
 
   await page.setViewportSize({ width: 320, height: 240 });
   await direct('box-volumecontrol--adjust');
+  await expect(page.locator('.nearic-demo-layout')).toHaveCount(0);
   const card = page.locator('.nr-card.nr-volume');
   await expect(card).toBeVisible();
   for (const button of await card.getByRole('button').all()) {

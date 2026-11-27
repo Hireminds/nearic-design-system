@@ -4,7 +4,7 @@ import '@nearic/ui-box/styles.css';
 import './preview.css';
 import { useArgs } from 'storybook/preview-api';
 import { localizedArgTypes, type PropModel } from '../../tooling/showcase/labels';
-import { DemoControls } from '../../tooling/showcase/DemoControls';
+import { DemoShowcase } from '../../tooling/showcase/DemoControls';
 import docsModel from '../.generated/props.json';
 import { darkTheme } from './theme';
 
@@ -24,10 +24,12 @@ const labels = docsModel.locales[query.get('lang') === 'en' ? 'en' : 'ru'];
 
 const withExample: Decorator = (Story, context) => {
   const [args, updateArgs] = useArgs();
+  const live = context.viewMode === 'story' && query.get('nearicDemo') === '1';
+  const example = <div className="box-example"><Story /></div>;
   return <div data-family="box" data-platform="box">
-    <div className="box-example"><Story /></div>
-    {context.viewMode === 'story' && query.get('nearicDemo') === '1' &&
-      <DemoControls args={args} argTypes={context.argTypes} labels={labels} updateArgs={updateArgs} />}
+    {live ? <DemoShowcase args={args} argTypes={context.argTypes} labels={labels} updateArgs={updateArgs}>
+      {example}
+    </DemoShowcase> : example}
   </div>;
 };
 
