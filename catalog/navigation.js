@@ -3,18 +3,20 @@ export const groups = {
   colors:'Цвета', type:'Типографика', space:'Отступы', radius:'Скругления',
   size:'Размеры и касание', motion:'Движение', opacity:'Прозрачность'
 };
-export function route(section = '', entry = '') {
-  return '#' + ['box', section, entry].filter(Boolean).join('/');
+export function route(section = '', entry = '', lang = 'ru') {
+  if (entry && (section === 'atoms' || section === 'components'))
+    return './' + encodeURIComponent(entry) + (lang === 'en' ? '.en' : '') + '.html';
+  return './' + (lang === 'en' ? '?lang=en' : '') + '#' + ['box', section, entry].filter(Boolean).join('/');
 }
 const icons = {
   overview:'<rect x="3" y="3" width="7" height="7" rx="1.7"/><rect x="14" y="3" width="7" height="7" rx="1.7"/><rect x="3" y="14" width="7" height="7" rx="1.7"/><rect x="14" y="14" width="7" height="7" rx="1.7"/>'
 };
 function icon(id) {return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">'+icons[id]+'</svg>';}
-export function navigationHTML({tokens, atoms, components}, current, search = '') {
+export function navigationHTML({tokens, atoms, components}, current, search = '', lang = 'ru') {
   const sectionItems = section => section === 'atoms' ? atoms : components;
   function navLink(section, entry, label) {
     const selected = current.section === section && current.entry === entry;
-    return '<a href="'+route(section,entry)+'" '+(selected?'aria-current="page"':'')+'>'+label+'</a>';
+    return '<a href="'+route(section,entry,lang)+'" '+(selected?'aria-current="page"':'')+'>'+label+'</a>';
   }
   const query = search.trim().toLocaleLowerCase('ru');
   const match = (...fields) => fields.join(' ').toLocaleLowerCase('ru').includes(query);

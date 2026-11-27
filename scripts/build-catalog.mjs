@@ -19,7 +19,7 @@ if (!Object.keys(result.metafile.inputs).some(path => path.endsWith('packages/ui
 
 await cp('catalog/navigation.js', 'dist/navigation.js');
 await appendFile('dist/catalog.css', await readFile('storybook/stories/box-example.css'));
-await import('./build-button-page.mjs');
+await import('./build-component-pages.mjs');
 await cp('packages/ui-box/dist/styles.css', 'dist/styles.css');
 await import('./pack.mjs');
 await writeFile('dist/.nojekyll', '');

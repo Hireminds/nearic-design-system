@@ -10,13 +10,26 @@ const downloads = path.resolve('dist/downloads');
 const {version, packages} = await json(path.join(downloads, 'package.json'));
 const names = ['tokens','ui-core','ui-box'];
 assert.deepEqual(Object.keys(packages), names.map(name => '@nearic/' + name));
+const catalogData = JSON.parse((await readFile('dist/data.js', 'utf8')).trim().slice('window.catalogData = '.length, -1));
+const catalogIds = [...catalogData.atoms, ...catalogData.components].map(item => item.id);
 const files = [
   '.nojekyll','catalog.css','catalog.js','data.js','downloads','downloads/package.json',
-  'button.html','button.en.html','button-live.js','button-live.css','navigation.js',
+  'navigation.js','samples.js',...catalogIds.flatMap(id => [id + '.html', id + '.en.html']),
   'index.html','runtime.js','styles.css','tokens.css',...names.map(name=>'downloads/' + packages['@nearic/'+name].filename),
 ];
 const output = await readdir('dist', { recursive: true });
-const catalogFiles = output.filter(name => name !== 'storybook' && !name.startsWith('storybook/'));
+const liveFiles = output.filter(name => name.startsWith('live/'));
+assert(liveFiles.length, 'Live assets must ship alongside the static component pages');
+for (const id of catalogIds) {
+  const page = await readFile('dist/' + id + '.html', 'utf8');
+  assert(page.includes('data-component-page="' + id + '"') && page.includes('data-nearic-live'), id);
+  assert(!page.includes('<iframe'), 'Component HTML must stand alone: ' + id);
+  const runtime = page.match(/data-runtime="([^"]+)"/)?.[1];
+  assert(runtime && liveFiles.includes(path.posix.normalize(runtime)), 'Missing live module for ' + id);
+  assert([...page.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].some(match => liveFiles.includes(path.posix.normalize(match[1]))),
+    'Missing live stylesheet for ' + id);
+}
+const catalogFiles = output.filter(name => !['storybook','live'].includes(name.split('/')[0]));
 assert.deepEqual(catalogFiles.sort(), files.sort());
 for (const name of ['index.html', 'iframe.html', 'index.json']) {
   assert(output.includes('storybook/' + name), 'The build must ship the Storybook catalog depends on: ' + name);

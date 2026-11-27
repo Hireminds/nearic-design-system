@@ -1,26 +1,6 @@
-import { chapters, groups, navigationHTML, route } from './navigation.js';
+import { chapters, groups, navigationHTML, route as catalogRoute } from './navigation.js';
 
 const {tokens, atoms, components} = window.catalogData;
-const storyGroups = new Map();
-let indexMessage = 'Загружаем примеры…';
-
-async function loadStories() {
-  try {
-    const response = await fetch('./storybook/index.json');
-    if (!response.ok) throw new Error('Missing Storybook index');
-    const {entries} = await response.json();
-    for (const entry of Object.values(entries)) {
-      const group = storyGroups.get(entry.title) ?? {stories: []};
-      if (entry.type === 'story') group.stories.push(entry);
-      if (entry.type === 'docs') group.docs = entry;
-      storyGroups.set(entry.title, group);
-    }
-    indexMessage = 'Примеры для этого компонента пока недоступны.';
-  } catch {
-    indexMessage = 'Не удалось загрузить примеры Storybook. Обновите страницу, чтобы повторить.';
-  }
-  if (['', 'atoms', 'components'].includes(current.section) && !isButtonPage(current)) render();
-}
 const groupUse = {
   colors:'Цвета действий, системных функций, состояний и поверхностей.',
   type:'Размеры текста для заголовков, значений и элементов управления.',
@@ -39,14 +19,16 @@ const navigation = $('#navigation'), page = $('#page'), crumb = $('#crumb');
 const mobileMenu = matchMedia('(max-width: 800px)');
 let current;
 let cleanPage;
-let storyLoad;
-const originalButtonPage = page.querySelector('[data-button-page]')?.cloneNode(true);
-
+const initialPage = page.querySelector('[data-component-page]');
+const permalink = document.documentElement.hasAttribute('data-permalink');
+const lang = (new URLSearchParams(location.search).get('lang') || initialPage?.lang) === 'en' ? 'en' : 'ru';
+const route = (section, entry) => catalogRoute(section, entry, lang);
 
 function readRoute() {
-  if (!location.hash && document.documentElement.hasAttribute('data-button-permalink')) return {section:'atoms',entry:'button'};
   const [prefix, sectionKey = '', entryKey = ''] = location.hash.slice(1).split('/');
-  if (prefix !== 'box') return {section:'', entry:''};
+  if (prefix !== 'box') {
+    return permalink ? { section: initialPage.dataset.section, entry: initialPage.dataset.componentPage } : { section: '', entry: '' };
+  }
   const section = Object.hasOwn(chapters,sectionKey) ? sectionKey : '';
   let entry = '';
   if (section === 'atoms' || section === 'components') {
@@ -60,7 +42,7 @@ function safeText(value) {
   return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 }
 function renderNav() {
-  navigation.innerHTML = navigationHTML(window.catalogData, current, search.value);
+  navigation.innerHTML = navigationHTML(window.catalogData, current, search.value, lang);
 }
 function pageTitle(title, description, badge = '') {
   return '<div class="page-title"><h1>'+title+'</h1>'+(description?'<p>'+description+'</p>':'')+badge+'</div>';
@@ -68,47 +50,18 @@ function pageTitle(title, description, badge = '') {
 function partHeading(title, url, label) {
   return '<div class="part-heading"><h2>'+title+'</h2>'+(url?'<a href="'+url+'">'+label+'</a>':'')+'</div>';
 }
-function storyFrame(item, story, controls = false) {
-  if (!story) return '<p class="sample-status" role="status">'+indexMessage+'</p>';
-  const query = new URLSearchParams({id: story.id, viewMode: 'story'});
-  if (controls) query.set('nearicDemo', '1');
-  if (new URLSearchParams(location.search).get('lang') === 'en') query.set('lang', 'en');
-  const title = safeText(item.name + ' · ' + story.name);
-  return '<iframe class="story-frame" title="'+title+'" loading="'+(controls ? 'eager' : 'lazy')+
-    '" src="./storybook/iframe.html?'+safeText(query.toString())+'"></iframe>';
+function sample(item) {
+  return '<div class="demo story-snapshot" data-family="box" data-platform="box" inert><div class="box-example" data-tile-sample="'+item.id+'"></div></div>';
 }
-
-function sample(item, controls = false) {
-  const story = storyGroups.get('BOX/'+item.component)?.stories[0];
-  return '<div class="demo" data-family="box" data-component="'+item.id+'">'+storyFrame(item,story,controls)+'</div>';
-}
-
-// Storybook runs on the same origin. Measure the rendered story, which may grow
-// when arguments change or controls wrap at smaller viewport widths.
-function fitStories(parent) {
-  const observers = new Map();
-  function fit(frame) {
-    observers.get(frame)?.disconnect();
-    const doc = frame.contentDocument;
-    const root = doc?.getElementById('storybook-root');
-    if (!root) return;
-    const resize = () => {
-      const body = doc.defaultView.getComputedStyle(doc.body);
-      const height = root.offsetTop + root.offsetHeight + parseFloat(body.paddingBottom);
-      if (height > 0) frame.style.height = Math.ceil(height) + 'px';
-    };
-    const observer = new ResizeObserver(resize);
-    observer.observe(root);
-    observers.set(frame, observer);
-    resize();
-  }
-  const onLoad = event => { if (event.target.matches?.('.story-frame')) fit(event.target); };
-  parent.addEventListener('load', onLoad, true);
-  parent.querySelectorAll('.story-frame').forEach(fit);
-  return () => {
-    parent.removeEventListener('load', onLoad, true);
-    for (const observer of observers.values()) observer.disconnect();
-  };
+function fillSamples() {
+  const samples = page.querySelectorAll('[data-tile-sample]');
+  if (!samples.length) return;
+  import('./samples.js').then(({ default: previews }) => {
+    for (const node of samples) if (node.isConnected) {
+      const id = node.dataset.tileSample;
+      node.innerHTML = previews[lang][id] ?? previews.ru[id];
+    }
+  }).catch(error => console.error('Catalog samples could not be loaded', error));
 }
 function detailUrl(item, section) {return route(section,item.id);}
 function itemTile(item, section) {
@@ -126,24 +79,6 @@ function overview() {
     '<a class="builder-link" href="'+route('builder')+'"><strong>Конструктор</strong><span>Собрать свой вариант и получить код</span></a>'+
     partHeading('Составные блоки',route('components'),'Все блоки')+'<div class="pattern-index">'+components.map(item=>'<a href="'+detailUrl(item,'components')+'"><strong>'+item.name+'</strong><span>'+item.summary+'</span></a>').join('')+'</div>'+
     '<section class="foundations-overview">'+partHeading('Основы',route('foundations'),'Все токены')+'<div class="quick-links">'+Object.keys(tokens.box).map(key=>'<a href="'+route('foundations',key)+'">'+groups[key]+'</a>').join('')+'</div></section>';
-}
-function itemPage(item) {
-  const usage = item.usage.split(/\n\s*\n/).map(text => '<p>'+safeText(text)+'</p>').join('');
-  const group = storyGroups.get('BOX/'+item.component);
-  const storybook = group?.docs && './storybook/?path=/docs/'+encodeURIComponent(group.docs.id);
-  const states = (group?.stories ?? []).map(story =>
-    '<figure data-state="'+safeText(story.name)+'"><figcaption>'+safeText(story.name)+'</figcaption>'+
-    storyFrame(item,story)+'</figure>'
-  ).join('');
-  const parts = (item.uses || []).map(id => {
-    const atom = atoms.find(a => a.id === id);
-    return '<a href="'+route('atoms',id)+'">'+atom.name+'</a>';
-  });
-  return pageTitle(item.name,item.summary,'<span class="proposal">Предложение</span>')+
-    '<div class="detail-container">'+partHeading('Живой пример',storybook,'Свойства и TSX в Storybook')+sample(item,true)+'<section class="details">'+
-    (parts.length?'<h2>Из чего собран</h2><div class="quick-links">'+parts.join('')+'</div>':'')+
-    '<h2>Применение</h2>'+usage+'<h2>Состояния и варианты</h2></section>'+
-    '<div class="state-grid">'+states+'</div></div>';
 }
 function itemIndex(section) {
   const items = sectionItems(section);
@@ -185,16 +120,9 @@ function menu(open) {
   menuButton.setAttribute('aria-expanded',String(open));
   sidebar.classList.toggle('open',open);
 }
-function isButtonPage(route) {
-  return route.section === 'atoms' && route.entry === 'button' && originalButtonPage;
-}
-function openButtonPage() {
-  // Reuse the server-rendered first paint, restoring it only after navigating back.
-  if (!page.querySelector('[data-button-page]')) page.replaceChildren(originalButtonPage.cloneNode(true));
-  // A fragment resolved before an SPA navigation inserted its target does not
-  // retroactively match :target in Chromium. Show the restored page explicitly.
-  page.querySelector('[data-button-page]').setAttribute('data-active-page', '');
-  const host = page.querySelector('[data-nearic-button-live]');
+function openComponentPage(componentPage) {
+  componentPage.setAttribute('data-active-page', '');
+  const host = componentPage.querySelector('[data-nearic-live]');
   let canceled = false;
   let unmount;
   const chooseState = event => {
@@ -207,14 +135,14 @@ function openButtonPage() {
   const enableSelections = () => {
     for (const button of page.querySelectorAll('[data-select-story]')) button.disabled = false;
   };
-  page.addEventListener('nearic:button-ready', enableSelections);
+  page.addEventListener('nearic:live-ready', enableSelections);
   page.addEventListener('click', chooseState);
-  import('./button-live.js').then(({mountButton}) => {
-    if (!canceled) unmount = mountButton(host);
-  }).catch(error => console.error('Button live controls could not initialize', error));
+  import(componentPage.dataset.runtime).then(({mountShowcase}) => {
+    if (!canceled) unmount = mountShowcase(host);
+  }).catch(error => console.error('Live controls could not initialize', error));
   return () => {
     canceled = true;
-    page.removeEventListener('nearic:button-ready', enableSelections);
+    page.removeEventListener('nearic:live-ready', enableSelections);
     page.removeEventListener('click', chooseState);
     unmount?.();
   };
@@ -237,23 +165,22 @@ function render() {
       if (target.isConnected) unmount = mountBuilder(target);
     });
     cleanPage = () => unmount?.();
-  }else if(isButtonPage(current)){
-    if (new URLSearchParams(location.search).get('lang') === 'en' && originalButtonPage.lang !== 'en') {
-      location.replace('./button.en.html' + location.search + location.hash);
+  }else if(item){
+    if (!initialPage?.isConnected || initialPage.dataset.componentPage !== entry || initialPage.lang !== lang) {
+      // A legacy fragment can only reach the server as an index request.
+      // Replace that history slot with the component's generated document.
+      location.replace(route(section, entry));
       return;
     }
-    cleanPage = openButtonPage();
+    cleanPage = openComponentPage(initialPage);
   }else{
     if(section==='foundations')page.innerHTML=foundationPage();
-    else if(item)page.innerHTML=itemPage(item);
     else if(section)page.innerHTML=itemIndex(section);
     else page.innerHTML=overview();
-    cleanPage = fitStories(page);
+    fillSamples();
   }
   renderNav();
   menu(false);
-  if (!isButtonPage(current) && ['', 'atoms', 'components'].includes(section))
-    storyLoad ??= loadStories();
 }
 document.querySelector('.skip').addEventListener('click',e=>{e.preventDefault();$('#content').focus();});
 menuButton.onclick=()=>{const open=!sidebar.classList.contains('open');menu(open);if(open)search.focus();};
@@ -264,5 +191,10 @@ document.addEventListener('keydown',e=>{
   if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)){e.preventDefault();if(mobileMenu.matches)menu(true);search.focus();}
   if(e.key==='Escape'&&(sidebar.contains(document.activeElement)||sidebar.classList.contains('open'))){menu(false);search.value='';renderNav();if(mobileMenu.matches)menuButton.focus();else search.blur();}
 });
-window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0);});
+window.addEventListener('hashchange', () => {
+  const next = readRoute();
+  if (current.section === next.section && current.entry === next.entry) return;
+  render();
+  window.scrollTo(0, 0);
+});
 render();

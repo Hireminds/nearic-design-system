@@ -6,7 +6,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 import { expect } from 'playwright/test';
 import * as box from '@nearic/ui-box';
-import { checkButtonPilot } from './button-pilot.mjs';
+import { checkStaticCatalog } from './static-catalog.mjs';
 
 const directory = fileURLToPath(new URL('../../dist/', import.meta.url));
 const prefix = '/nearic-design-system/';
@@ -99,7 +99,7 @@ try {
 
   const index = await (await fetch(base + 'index.json')).json();
   const entries = Object.values(index.entries);
-  await checkButtonPilot(browser, catalog, entries);
+
   const components = Object.keys(box).filter(name => /^[A-Z]/.test(name));
   assert(components.includes('Card'), 'The BOX profile must export the reusable surface');
   for (const component of components) {
@@ -116,7 +116,11 @@ try {
   }
 
   await page.goto(catalog);
-  const componentPages = page.locator('.nav-entries a[href^="#box/atoms/"], .nav-entries a[href^="#box/components/"]');
+  const items = await page.evaluate(() => ['atoms','components'].flatMap(section =>
+    window.catalogData[section].map(({id,component}) => ({id,component,section}))));
+  assert.deepEqual(items.map(item => item.component).sort(), [...components].sort());
+  await checkStaticCatalog(browser, catalog, entries, items);
+  const componentPages = page.locator('.nav-entries a[href$=".html"]');
   await expect(componentPages).toHaveCount(components.length);
   const routes = await componentPages.evaluateAll(links => links.map(link => link.href));
   const catalogDocs = [];
@@ -128,10 +132,10 @@ try {
   }
   assert.deepEqual(catalogDocs.sort(), entries.filter(entry => entry.type === 'docs').map(entry => '/docs/' + entry.id).sort());
 
-  // The showcase embeds the canonical story. Both the component and its generated controls
+  // The prebuilt showcase and its generated controls
   // update the same args, including a boolean inherited from native HTML inputs.
   await page.goto(catalog + '#box/atoms/slider');
-  const demo = page.frameLocator('iframe[src*="nearicDemo=1"]');
+  const demo = page.locator('[data-nearic-live][data-live-ready="true"]');
   const panel = demo.getByRole('group', { name: 'Параметры', exact: true });
   const slider = demo.getByRole('slider', { name: 'Яркость', exact: true });
   const sliderControl = panel.getByRole('slider', { name: 'Значение', exact: true });
@@ -191,7 +195,7 @@ try {
   }
 
   await page.goto(catalog + '#box/atoms/button');
-  const buttonDemo = page.locator('[data-nearic-button-live][data-live-ready="true"]');
+  const buttonDemo = page.locator('[data-nearic-live][data-live-ready="true"]');
   const buttonPanel = buttonDemo.getByRole('group', { name: 'Параметры', exact: true });
   const buttonToggle = buttonPanel.getByRole('button', { name: 'Параметры', exact: true });
   await expect(buttonToggle).toHaveAttribute('aria-expanded', 'false');
@@ -217,7 +221,7 @@ try {
   await expect(sampleButton).toBeDisabled();
 
   await page.goto(catalog + '#box/components/box-actions');
-  const decision = page.frameLocator('iframe[src*="nearicDemo=1"]');
+  const decision = page.locator('[data-nearic-live][data-live-ready="true"]');
   await decision.getByRole('button', { name: 'Запустить', exact: true }).click();
   const reset = decision.getByRole('button', { name: 'Сбросить', exact: true });
   await expect(reset).toBeFocused();
@@ -227,7 +231,7 @@ try {
   await expect(decision.locator('[data-feedback]')).toHaveText('Ожидается ответ');
 
   await page.goto(catalog + '?lang=en#box/components/box-volume');
-  const volume = page.frameLocator('iframe[src*="nearicDemo=1"]');
+  const volume = page.locator('[data-nearic-live][data-live-ready="true"]');
   await volume.getByRole('button', { name: 'Прибавить громкость' }).click();
   const level = volume.getByRole('slider', { name: 'Level', exact: true });
   await expect(level).toHaveValue('70');
