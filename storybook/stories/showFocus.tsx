@@ -8,8 +8,8 @@ function FocusSample({children}: {children: ReactNode}) {
     target.current?.querySelector<HTMLElement>('button, input, a[href]')?.focus({focusVisible: true} as FocusOptions);
   }
   return <Stack>
-    <div ref={target}>{children}</div>
-    <Button variant="quiet" onClick={focusControl}>Показать фокус</Button>
+    <div ref={target} data-nearic-focus-target>{children}</div>
+    <Button data-nearic-focus-trigger variant="quiet" onClick={focusControl}>Показать фокус</Button>
   </Stack>;
 }
 
