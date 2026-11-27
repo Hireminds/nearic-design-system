@@ -130,18 +130,55 @@ try {
   // update the same args, including a boolean inherited from native HTML inputs.
   await page.goto(catalog + '#box/atoms/slider');
   const demo = page.frameLocator('iframe[src*="nearicDemo=1"]');
-  const slider = demo.locator('input.nr-slider');
-  const sliderControl = demo.getByRole('slider', { name: 'Значение', exact: true });
+  const panel = demo.getByRole('group', { name: 'Параметры примера' });
+  const slider = demo.getByRole('slider', { name: 'Яркость', exact: true });
+  const sliderControl = panel.getByRole('slider', { name: 'Значение', exact: true });
+  const lock = panel.getByRole('switch', { name: 'Блокировка', exact: true });
   await expect(slider).toHaveValue('60');
-  await demo.getByRole('button', { name: 'Заблокировать' }).click();
+  await lock.focus();
+  await lock.press('Space');
+  await expect(lock).toBeChecked();
   await expect(slider).toBeDisabled();
-  await demo.getByRole('button', { name: 'Разблокировать' }).click();
+  await lock.press('Space');
+  await expect(lock).not.toBeChecked();
   await expect(slider).toBeEnabled();
   await slider.focus();
   await slider.press('ArrowRight');
   await expect(sliderControl).toHaveValue('65');
   await sliderControl.press('Home');
   await expect(slider).toHaveValue('0');
+  const minimum = panel.getByRole('spinbutton', { name: 'Минимум', exact: true });
+  await minimum.fill('-10');
+  await minimum.press('Tab');
+  await expect(slider).toHaveAttribute('min', '-10');
+  await expect(sliderControl).toHaveAttribute('min', '-10');
+  await sliderControl.press('Home');
+  await expect(slider).toHaveValue('-10');
+  for (const width of [320, 390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect.poll(() => panel.evaluate(group => {
+      const root = group.ownerDocument.documentElement;
+      const bounds = group.getBoundingClientRect();
+      return root.scrollWidth <= root.clientWidth + 1 &&
+        [...group.querySelectorAll('input, select')].every(input => {
+          const field = input.getBoundingClientRect();
+          return field.left >= bounds.left - 1 && field.right <= bounds.right + 1;
+        });
+    }), { message: 'Controls must fit the preview at ' + width + ' px' }).toBe(true);
+  }
+
+  await page.goto(catalog + '#box/atoms/button');
+  const buttonDemo = page.frameLocator('iframe[src*="nearicDemo=1"]');
+  const buttonPanel = buttonDemo.getByRole('group', { name: 'Параметры примера' });
+  const caption = buttonPanel.getByRole('textbox', { name: 'Содержимое', exact: true });
+  await caption.fill('Сохранить');
+  const sampleButton = buttonDemo.getByRole('button', { name: 'Сохранить', exact: true });
+  await expect(sampleButton).toBeEnabled();
+  const variant = buttonPanel.getByRole('combobox', { name: 'Вариант', exact: true });
+  await variant.selectOption('destructive');
+  await expect(sampleButton).toHaveAttribute('data-variant', 'destructive');
+  await buttonPanel.getByRole('switch', { name: 'Блокировка' }).click();
+  await expect(sampleButton).toBeDisabled();
 
   await page.goto(catalog + '#box/components/box-actions');
   const decision = page.frameLocator('iframe[src*="nearicDemo=1"]');
@@ -156,10 +193,12 @@ try {
   await page.goto(catalog + '?lang=en#box/components/box-volume');
   const volume = page.frameLocator('iframe[src*="nearicDemo=1"]');
   await volume.getByRole('button', { name: 'Прибавить громкость' }).click();
-  await expect(volume.getByRole('spinbutton', { name: 'Level', exact: true })).toHaveValue('70');
-  await volume.getByRole('spinbutton', { name: 'Level', exact: true }).fill('30');
-  await expect(volume.locator('output')).toHaveText('30%');
-  await volume.getByRole('button', { name: 'Disable', exact: true }).click();
+  const level = volume.getByRole('slider', { name: 'Level', exact: true });
+  await expect(level).toHaveValue('70');
+  await level.press('Home');
+  await level.press('ArrowRight');
+  await expect(volume.locator('.nr-volume output')).toHaveText('1%');
+  await volume.getByRole('switch', { name: 'Lock example', exact: true }).click();
   await expect(volume.getByRole('button', { name: 'Прибавить громкость' })).toBeDisabled();
 
   await page.setViewportSize({ width: 320, height: 240 });

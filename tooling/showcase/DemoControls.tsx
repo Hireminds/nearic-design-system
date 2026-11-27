@@ -1,54 +1,125 @@
 import * as React from 'react';
+import { Icon, Slider, Switch } from '@nearic/ui-core';
 import type { Args, StrictArgTypes } from 'storybook/internal/types';
 import type { Labels } from './labels';
 import './controls.css';
 
 type Props = { args: Args; argTypes: StrictArgTypes; labels: Labels; updateArgs: (changes: Args) => void };
+type NumberProps = {
+  value: number | string | undefined;
+  min?: number | string;
+  max?: number | string;
+  step?: number | string;
+  required: boolean;
+  onValue: (next: number | undefined) => void;
+};
+
+function NumberField({ value, min, max, step, required, onValue }: NumberProps) {
+  const ref = React.useRef<HTMLInputElement>(null);
+
+  React.useLayoutEffect(() => {
+    const input = ref.current;
+    if (!input) return;
+    if (value == null) {
+      if (!input.validity.badInput) input.value = '';
+    } else if (input.valueAsNumber !== Number(value)) {
+      input.value = String(value);
+    }
+  }, [value]);
+
+  // Let the browser keep intermediate entries such as "-" and "1." while typing.
+  return <input ref={ref} className="nearic-demo-input" type="number" min={min} max={max}
+    step={step ?? 'any'} required={required} onChange={event => {
+      const input = event.currentTarget;
+      if (Number.isFinite(input.valueAsNumber) && input.validity.valid) onValue(input.valueAsNumber);
+      else if (input.value === '' && !input.validity.badInput && !required) onValue(undefined);
+    }} onBlur={event => {
+      const input = event.currentTarget;
+      if (!input.validity.valid) input.value = value == null ? '' : String(value);
+    }} />;
+}
+
+type Field = { key: string; node: React.ReactElement };
+const constraintKeys = ['min', 'max', 'step'];
 
 export function DemoControls({ args, argTypes, labels, updateArgs }: Props) {
-  const fields = Object.entries(argTypes).flatMap(([key, arg]) => {
-    if (!arg.nearic?.labelKey || arg.table?.disable || !arg.control) return [];
-    if (key === 'defaultValue' && args.value !== undefined || key === 'defaultChecked' && args.checked !== undefined) return [];
-    if (key === 'value' && args.defaultValue !== undefined || key === 'checked' && args.defaultChecked !== undefined) return [];
-    const value = args[key];
-    const label = labels[arg.nearic.labelKey];
+  const fields: Field[] = [];
+  const bounds: Field[] = [];
+  // An optional number can be cleared. Keep its field editable when Storybook drops the empty arg.
+  const editedKeys = React.useRef(new Set<string>());
+
+  for (const [key, arg] of Object.entries(argTypes)) {
+    if (!arg.nearic?.labelKey || arg.table?.disable || !arg.control) continue;
+    if (key === 'defaultValue' && args.value !== undefined || key === 'defaultChecked' && args.checked !== undefined) continue;
+    if (key === 'value' && args.defaultValue !== undefined || key === 'checked' && args.defaultChecked !== undefined) continue;
     const control = typeof arg.control === 'string' ? { type: arg.control } : arg.control;
     // Advanced DOM attributes remain available in the technical Controls panel.
-    if (control.disable || (key !== 'disabled' && !(key in args) && !arg.nearic.required && !arg.nearic.owned)) return [];
-    const update = (next: unknown) => updateArgs({ [key]: next });
-    let input;
-    if (control.type === 'boolean' && key === 'disabled') {
-      return [<button className="nearic-demo-lock" key={key} type="button" aria-pressed={Boolean(value)}
-        onClick={() => update(!value)}>{labels[value ? 'actions.enable' : 'actions.disable']}</button>];
-    }
+    if (control.disable || (key !== 'disabled' && !(key in args) && !arg.nearic.required && !arg.nearic.owned && !editedKeys.current.has(key))) continue;
+    const value = args[key];
+    const label = labels[key === 'disabled' ? 'controls.lock' : arg.nearic.labelKey];
+    const update = (next: unknown) => {
+      editedKeys.current.add(key);
+      updateArgs({ [key]: next });
+    };
+    let input: React.ReactNode;
+    let fieldClass = 'nearic-demo-field';
     switch (control.type) {
       case 'boolean':
-        input = <input type="checkbox" checked={Boolean(value)} onChange={e => update(e.currentTarget.checked)} />;
+        fieldClass += ' nearic-demo-switch';
+        input = <Switch label={label} checked={Boolean(value)} onChange={event => update(event.currentTarget.checked)} />;
         break;
-      case 'select': case 'radio': case 'inline-radio':
-        input = <select value={value ?? ''} onChange={e => update(arg.options?.find(item => String(item) === e.currentTarget.value))}>
-          {value === undefined && <option value="" />}
-          {arg.options?.map(item => <option key={String(item)} value={String(item)}>{control.labels?.[String(item)] ?? String(item)}</option>)}
-        </select>;
+      case 'select': case 'radio': case 'inline-radio': {
+        const options = arg.options ?? [];
+        // Native option values are strings. Keep the original type, including 1 versus "1".
+        const hasTypedOptions = options.some(item => typeof item !== 'string');
+        const optionValue = (item: unknown) => hasTypedOptions ? String(options.indexOf(item)) : String(item);
+        input = <span className="nearic-demo-select">
+          <select className="nearic-demo-input" value={value == null ? '' : optionValue(value)} onChange={event => {
+            const selected = event.currentTarget.value;
+            update(options.find(item => optionValue(item) === selected));
+          }}>
+            {value === undefined && <option value="" />}
+            {options.map(item => <option key={optionValue(item)} value={optionValue(item)}>{control.labels?.[String(item)] ?? String(item)}</option>)}
+          </select>
+          <Icon name="next" size="small" />
+        </span>;
         break;
+      }
       case 'range': case 'number': {
-        const min = control.min ?? (key === 'value' ? args.min : undefined);
-        const max = control.max ?? (key === 'value' ? args.max : undefined);
-        const range = control.type === 'range' || min !== undefined && max !== undefined;
-        input = <><input type={range ? 'range' : 'number'} aria-label={label} min={min} max={max}
-          step={control.step ?? (key === 'value' ? args.step : undefined)} value={value ?? ''}
-          onChange={e => { const next = e.currentTarget.valueAsNumber; if (Number.isFinite(next)) update(next); }} />
-          {range && <span aria-hidden="true">{value}</span>}</>;
+        const isValue = key === 'value' || key === 'defaultValue';
+        const min = control.min ?? (isValue ? args.min : undefined);
+        const max = control.max ?? (isValue ? args.max : undefined);
+        const step = control.step ?? (isValue ? args.step : undefined);
+        if (control.type === 'range' || min != null && max != null) {
+          fieldClass += ' nearic-demo-range';
+          input = <><span className="nearic-demo-reading" aria-hidden="true">{value ?? '—'}</span>
+            <Slider label={label} min={min} max={max} step={step} value={value ?? ''}
+              onChange={event => update(event.currentTarget.valueAsNumber)} /></>;
+        } else {
+          input = <NumberField value={value} min={min} max={max} step={step}
+            required={Boolean(arg.nearic.required)} onValue={update} />;
+        }
         break;
       }
       case 'text':
-        if (value !== undefined && typeof value !== 'string') return [];
-        input = <input type="text" value={value ?? ''} onChange={e => update(e.currentTarget.value)} />;
+        if (value !== undefined && typeof value !== 'string') continue;
+        input = <input className="nearic-demo-input" type="text" value={value ?? ''} onChange={event => update(event.currentTarget.value)} />;
         break;
-      default: return [];
+      default: continue;
     }
-    return [<label key={key} className="nearic-demo-field"><span>{label}</span>{input}</label>];
-  });
+    const target = control.type === 'number' && constraintKeys.includes(key) ? bounds : fields;
+    target.push({ key, node: <label key={key} className={fieldClass}><span className="nearic-demo-label">{label}</span>{input}</label> });
+  }
 
-  return fields.length ? <fieldset className="nearic-demo-controls"><legend>{labels['controls.title']}</legend>{fields}</fieldset> : null;
+  if (!fields.length && !bounds.length) return null;
+  return <fieldset className="nearic-demo-controls">
+    <legend><Icon name="settings" /><span>{labels['controls.title']}</span></legend>
+    <div className="nearic-demo-fields">
+      {fields.filter(field => field.key !== 'disabled').map(field => field.node)}
+      {bounds.length > 0 && <div className="nearic-demo-bounds">
+        {constraintKeys.map(key => bounds.find(field => field.key === key)?.node)}
+      </div>}
+      {fields.find(field => field.key === 'disabled')?.node}
+    </div>
+  </fieldset>;
 }

@@ -15,6 +15,9 @@ test('inferred controls, component-specific labels and required translations', (
       /** @labelKey props.volumeControl.value */
       value: number;
       variant?: 'short' | 'long';
+      step?: 1 | 5 | 10;
+      min?: number;
+      label?: string;
       disabled?: boolean;
     }
     export function Example(props: Props) { return props.value; }`;
@@ -23,6 +26,10 @@ test('inferred controls, component-specific labels and required translations', (
     const { Example } = componentProps([dir], locales);
     assert.equal(Example.value.labelKey, 'props.volumeControl.value');
     assert.equal(Example.value.required, true);
+    assert.equal(Example.min.kind, 'number');
+    assert.equal(Example.label.kind, 'text');
+    assert.equal(Example.step.kind, 'select');
+    assert.deepEqual(Example.step.options.toSorted((a, b) => a - b), [1, 5, 10]);
     assert.equal(Example.disabled.kind, 'boolean');
     assert.equal(Example.disabled.required, false);
     assert.deepEqual(Example.variant.options.toSorted(), ['long', 'short']);

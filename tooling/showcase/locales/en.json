@@ -1,6 +1,5 @@
 {
-  "actions.disable": "Disable",
-  "actions.enable": "Enable",
+  "controls.lock": "Lock example",
   "controls.title": "Example controls",
   "props.common.checked": "Checked",
   "props.common.children": "Content",

@@ -1,6 +1,5 @@
 {
-  "actions.disable": "Заблокировать",
-  "actions.enable": "Разблокировать",
+  "controls.lock": "Блокировка",
   "controls.title": "Параметры примера",
   "props.common.checked": "Включён",
   "props.common.children": "Содержимое",

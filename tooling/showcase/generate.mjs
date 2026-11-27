@@ -28,7 +28,7 @@ function shape(checker, type) {
   const value = checker.getNonNullableType(type);
   if (value.flags & ts.TypeFlags.BooleanLike) return { kind: 'boolean' };
   const parts = value.isUnion() ? value.types : [value];
-  if (parts.every(part => part.isStringLiteral()))
+  if (parts.every(part => part.isStringLiteral() || part.isNumberLiteral()))
     return { kind: 'select', options: parts.map(part => part.value) };
   if (parts.every(part => part.flags & ts.TypeFlags.NumberLike)) return { kind: 'number' };
   if (parts.every(part => part.flags & ts.TypeFlags.StringLike)) return { kind: 'text' };

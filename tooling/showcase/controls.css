@@ -1,30 +1,137 @@
 .nearic-demo-controls {
+  --demo-surface: color-mix(in srgb, var(--colors-surface) 65%, var(--colors-canvas));
+  --demo-field: color-mix(in srgb, var(--colors-surface) 30%, var(--colors-canvas));
+  --demo-edge: color-mix(in srgb, var(--colors-outline) 64%, var(--demo-field));
   box-sizing: border-box;
-  display: grid;
-  gap: var(--space-gap, 8px);
-  max-width: 36rem;
+  inline-size: 100%;
+  max-inline-size: 36rem;
   min-inline-size: 0;
-  margin: 1rem 0 0;
-  padding: .75rem;
-  border: 1px solid var(--colors-outline, #64716d);
-  border-radius: var(--radius-panel, 12px);
-  color: var(--colors-text, inherit);
-  font: 400 .875rem/1.4 system-ui, sans-serif;
+  margin: var(--space-inset) 0 0;
+  padding: 0;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--colors-line);
+  border-radius: var(--radius-panel);
+  background: var(--demo-surface);
+  color: var(--colors-text);
+  font: 400 1rem/1.4 system-ui, sans-serif;
+  color-scheme: dark;
+  container-type: inline-size;
 }
-.nearic-demo-controls legend { padding-inline: .35rem; }
-.nearic-demo-field {
+
+.nearic-demo-controls legend {
+  box-sizing: border-box;
+  float: inline-start;
   display: flex;
   align-items: center;
-  gap: .5rem;
-  justify-content: space-between;
-  min-width: 0;
+  gap: var(--space-inline);
+  inline-size: 100%;
+  padding: var(--space-inline) var(--space-inset);
+  border-block-end: 1px solid var(--colors-line);
+  color: var(--colors-text);
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -.015em;
 }
-.nearic-demo-field input, .nearic-demo-field select, .nearic-demo-lock {
+.nearic-demo-controls legend svg { flex: none; color: var(--colors-accent); }
+
+.nearic-demo-fields {
+  display: grid;
+  clear: both;
+  gap: var(--space-inline);
+  padding: var(--space-inline) var(--space-inset);
+}
+.nearic-demo-field {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: center;
+  gap: var(--space-gap) var(--space-inline);
+  min-inline-size: 0;
+}
+.nearic-demo-label {
+  color: var(--colors-muted);
+  font-size: .875rem;
+  font-weight: 550;
+}
+.nearic-demo-input {
   box-sizing: border-box;
-  max-width: 58%;
-  min-width: 0;
-  min-height: 2rem;
-  accent-color: var(--colors-accent);
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--size-touch);
+  padding: 0 var(--space-inline);
+  border: 1px solid var(--demo-edge);
+  border-radius: var(--radius-control);
+  background: var(--demo-field);
+  color: var(--colors-text);
   font: inherit;
+  font-size: .9375rem;
 }
-.nearic-demo-lock { justify-self: start; max-width: 100%; padding: .25rem .75rem; }
+.nearic-demo-input:hover { border-color: var(--colors-outline); }
+.nearic-demo-controls :is(input, select):focus-visible {
+  outline: var(--size-focus) solid var(--colors-focus);
+  outline-offset: 2px;
+}
+.nearic-demo-input[type="number"] { font-variant-numeric: tabular-nums; }
+.nearic-demo-select { position: relative; min-inline-size: 0; }
+.nearic-demo-select select {
+  appearance: none;
+  padding-inline-end: calc(var(--space-inline) * 2 + var(--size-icon-small));
+  cursor: pointer;
+}
+.nearic-demo-select svg {
+  position: absolute;
+  inset-inline-end: var(--space-inline);
+  inset-block-start: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  color: var(--colors-muted);
+  pointer-events: none;
+}
+
+.nearic-demo-range {
+  grid-template-columns: minmax(0, 1fr) auto;
+  row-gap: 0;
+}
+.nearic-demo-reading {
+  justify-self: end;
+  color: var(--colors-accent);
+  font-size: 1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.nearic-demo-range input { grid-column: 1 / -1; accent-color: var(--colors-accent); }
+.nearic-demo-bounds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-gap);
+}
+.nearic-demo-bounds .nearic-demo-field {
+  flex: 1 1 4.3rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-compact);
+}
+.nearic-demo-bounds .nearic-demo-label { font-size: .8125rem; }
+.nearic-demo-switch {
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-block-size: var(--size-touch);
+  cursor: pointer;
+}
+.nearic-demo-switch .nearic-demo-label { color: var(--colors-text); }
+.nearic-demo-switch:last-child:not(:first-child) {
+  border-block-start: 1px solid var(--colors-line);
+  padding-block-start: var(--space-gap);
+}
+
+@container (max-width: 20rem) {
+  .nearic-demo-field:not(.nearic-demo-switch, .nearic-demo-range) {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-compact);
+  }
+}
+
+@media (forced-colors: active) {
+  .nearic-demo-controls, .nearic-demo-input { border-color: ButtonText; }
+  .nearic-demo-select select { appearance: auto; padding-inline-end: var(--space-inline); }
+  .nearic-demo-select svg { display: none; }
+  .nearic-demo-controls :is(input, select):focus-visible { outline-color: Highlight; }
+}

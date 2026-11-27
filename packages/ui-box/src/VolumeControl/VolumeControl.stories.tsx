@@ -10,7 +10,10 @@ const meta = {
   parameters: docs(usage),
   args: { value: 60, step: 10, label: 'Громкость', disabled: false, onChange: fn() },
   argTypes: {
-    value: numeric('Текущий уровень в процентах.', { required: true }),
+    value: {
+      ...numeric('Текущий уровень в процентах.', { required: true }),
+      control: { type: 'range', min: 0, max: 100, step: 1 },
+    },
     onChange: callback('Сообщает новый уровень в диапазоне 0–100.', '(value: number) => void', true),
     step: numeric('Шаг нажатия кнопки.', { initial: '10' }), label: stringProp('Видимый заголовок и имя индикатора.', false, 'Громкость'), className,
   },
