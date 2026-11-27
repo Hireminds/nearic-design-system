@@ -1,0 +1,3 @@
+.root { flex-wrap: nowrap; }
+.root :global(.nr-button) { flex: 1; min-inline-size: 0; }
+.root :global(.nr-button)[data-variant=primary] { flex: 1.45; }

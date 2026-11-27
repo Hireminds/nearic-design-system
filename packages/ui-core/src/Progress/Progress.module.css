@@ -1,0 +1,19 @@
+.root {
+  appearance: none;
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: var(--size-track);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-track);
+  color: var(--colors-accent);
+  background: var(--colors-track);
+}
+.root::-webkit-progress-bar { background: var(--colors-track); }
+.root::-webkit-progress-value { border-radius: var(--radius-track); background: var(--colors-accent); }
+.root::-moz-progress-bar { border-radius: var(--radius-track); background: var(--colors-accent); }
+.root:indeterminate { appearance: auto; accent-color: var(--colors-accent); }
+@media (forced-colors: active) {
+  .root { appearance: auto; }
+}

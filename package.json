@@ -10,8 +10,9 @@
     "check:tokens": "python3 scripts/check-tokens.py",
     "build:package": "python3 scripts/build.py && node scripts/build-ui.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "build": "npm run check:tokens && npm run build:package && npm run typecheck && node scripts/build-catalog.mjs",
-    "verify": "npm run build && node scripts/verify-build.mjs"
+    "build": "npm run build:catalog && npm run build --workspace @nearic/box-storybook",
+    "verify": "npm run build && node scripts/verify-build.mjs && node --test tooling/showcase/schema.test.mjs",
+    "build:catalog": "npm run check:tokens && npm run build:package && npm run typecheck && npm run props --workspace @nearic/box-storybook && node scripts/build-catalog.mjs"
   },
   "devDependencies": {
     "@types/react": "19.2.15",

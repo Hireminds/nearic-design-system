@@ -10,3 +10,4 @@ __pycache__/
 /.specify/workflows/.cache/
 /.specify/extensions/.cache/
 /.specify/.workflow-install.lock
+/storybook/.generated/

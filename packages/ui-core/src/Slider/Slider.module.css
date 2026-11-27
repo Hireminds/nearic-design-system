@@ -1,0 +1,7 @@
+.root { box-sizing:border-box; touch-action:manipulation; }
+.root:focus-visible {
+  outline: var(--size-focus) solid var(--colors-focus);
+  outline-offset: 2px;
+}
+.root:disabled { opacity: var(--opacity-disabled); cursor: default; }
+.root { inline-size: 100%; min-inline-size: 0; min-block-size: var(--size-touch); margin: 0; accent-color: var(--colors-accent); cursor: pointer; }

@@ -1,6 +1,6 @@
 {
   "name": "@nearic/ui-box",
-  "version": "0.1.0-preview.2",
+  "version": "0.1.0-preview.4",
   "type": "module",
   "description": "Nearic BOX components and device theme",
   "files": [
@@ -30,7 +30,7 @@
     "react": ">=18.2.0 <20"
   },
   "dependencies": {
-    "@nearic/ui-core": "0.1.0-preview.2"
+    "@nearic/ui-core": "0.1.0-preview.4"
   },
   "bundleDependencies": [
     "@nearic/ui-core"

@@ -10,7 +10,6 @@ OUT.mkdir()
 for filename in ["index.html", "catalog.css", "catalog.js"]:
     shutil.copy2(ROOT / "catalog" / filename, OUT / filename)
 
-atoms = read(ROOT / "catalog/atoms.json")
 registry = dict(profiles())
 box = registry["box"]
 notes = read(ROOT / "catalog/token-notes.json")
@@ -20,16 +19,30 @@ tokens = {"box": {
 }}
 if any({entry["key"] for entry in notes[group]} != set(values) for group, values in box.items()):
     raise ValueError("Every device token must have a catalog entry")
-components = [
-    json.loads(path.read_text())
-    for path in sorted((ROOT / "components").glob("*/component.json"))
-]
-if set(tokens) != {"box"} or any(atom["families"] != ["box"] for atom in atoms):
-    raise ValueError("Expected BOX catalog data")
+
+
+def load_components(package):
+    result = []
+    for metadata in sorted((ROOT / "packages" / package / "src").glob("*/component.json")):
+        name = metadata.parent.name
+        if not metadata.with_name(f"{name}.stories.tsx").is_file():
+            raise ValueError(f"Missing stories for {name}")
+        usage = metadata.with_name("docs.md").read_text(encoding="utf-8").strip()
+        if not usage:
+            raise ValueError(f"Missing usage guidance for {name}")
+        result.append({**read(metadata), "component": name, "usage": usage})
+    return result
+
+
+atoms = load_components("ui-core")
+components = load_components("ui-box")
+all_ids = [item["id"] for item in atoms + components]
+if len(all_ids) != len(set(all_ids)):
+    raise ValueError("Catalog component ids must be unique")
 atom_ids = {atom["id"] for atom in atoms}
 for component in components:
-    if component["family"] != "box" or not set(component["uses"]).issubset(atom_ids):
-        raise ValueError(f"Invalid component in BOX catalog: {component['id']}")
+    if not set(component["uses"]).issubset(atom_ids):
+        raise ValueError(f"Unknown atom in {component['id']}")
 builder_source = (ROOT / "catalog/builder.tsx").read_text()
 recipe = builder_source.split("// @example-start\n", 1)[1].split("// @example-end", 1)[0].strip()
 data = {"tokens": tokens, "components": components, "atoms": atoms, "builderRecipe": recipe}

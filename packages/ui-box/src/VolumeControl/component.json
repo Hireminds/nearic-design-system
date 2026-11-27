@@ -1,0 +1,15 @@
+{
+  "id": "box-volume",
+  "name": "Громкость",
+  "group": "Настройки",
+  "summary": "Позволяет менять громкость с шагом 10% кнопками на BOX.",
+  "uses": [
+    "card",
+    "icon",
+    "icon-button",
+    "progress",
+    "row",
+    "stack",
+    "text"
+  ]
+}

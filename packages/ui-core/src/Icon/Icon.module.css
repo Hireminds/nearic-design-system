@@ -1,0 +1,20 @@
+.root {
+  display: inline-block;
+  flex: none;
+  inline-size: var(--size-icon);
+  block-size: var(--size-icon);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--size-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: middle;
+}
+.root[data-size=small] { inline-size: var(--size-icon-small); block-size: var(--size-icon-small); }
+.root[data-size=large] { inline-size: var(--size-icon-large); block-size: var(--size-icon-large); }
+.root[data-tone=network] { color: var(--colors-network); }
+.root[data-tone=sound] { color: var(--colors-sound); }
+.root[data-tone=info] { color: var(--colors-info); }
+.root[data-tone=success] { color: var(--colors-success); }
+.root[data-tone=warning] { color: var(--colors-warning); }
+.root[data-tone=error] { color: var(--colors-error); }

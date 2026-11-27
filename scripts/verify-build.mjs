@@ -10,18 +10,49 @@ const downloads = path.resolve('dist/downloads');
 const {version, packages} = await json(path.join(downloads, 'package.json'));
 const names = ['tokens','ui-core','ui-box'];
 assert.deepEqual(Object.keys(packages), names.map(name => '@nearic/' + name));
+const catalogData = JSON.parse((await readFile('dist/data.js', 'utf8')).trim().slice('window.catalogData = '.length, -1));
+const catalogIds = [...catalogData.atoms, ...catalogData.components].map(item => item.id);
 const files = [
   '.nojekyll','catalog.css','catalog.js','data.js','downloads','downloads/package.json',
+  'navigation.js','samples.js',...catalogIds.flatMap(id => [id + '.html', id + '.en.html']),
   'index.html','runtime.js','styles.css','tokens.css',...names.map(name=>'downloads/' + packages['@nearic/'+name].filename),
 ];
-assert.deepEqual((await readdir('dist',{recursive:true})).sort(),files.sort());
+const output = await readdir('dist', { recursive: true });
+const liveFiles = output.filter(name => name.startsWith('live/'));
+assert(liveFiles.length, 'Live assets must ship alongside the static component pages');
+for (const id of catalogIds) {
+  const page = await readFile('dist/' + id + '.html', 'utf8');
+  assert(page.includes('data-component-page="' + id + '"') && page.includes('data-nearic-live'), id);
+  assert(!page.includes('<iframe'), 'Component HTML must stand alone: ' + id);
+  const runtime = page.match(/data-runtime="([^"]+)"/)?.[1];
+  assert(runtime && liveFiles.includes(path.posix.normalize(runtime)), 'Missing live module for ' + id);
+  assert([...page.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].some(match => liveFiles.includes(path.posix.normalize(match[1]))),
+    'Missing live stylesheet for ' + id);
+}
+const catalogFiles = output.filter(name => !['storybook','live'].includes(name.split('/')[0]));
+assert.deepEqual(catalogFiles.sort(), files.sort());
+for (const name of ['index.html', 'iframe.html', 'index.json']) {
+  assert(output.includes('storybook/' + name), 'The build must ship the Storybook catalog depends on: ' + name);
+}
 
-// Each archive has an explicit public file set, including its exact bundled siblings.
+// Only package entry points, component declarations and exact bundled siblings ship.
+const coreComponents = [
+  'Icon', 'Text', 'Button', 'IconButton', 'Switch', 'Slider', 'Progress', 'StatusIndicator',
+  'Link', 'Row', 'Stack', 'Card',
+];
+const boxComponents = ['NetworkRow', 'VolumeControl', 'DecisionActions'];
+const declarationFiles = names => names.flatMap(name => [
+  'dist/src/' + name + '/index.d.ts', 'dist/src/' + name + '/' + name + '.d.ts',
+]);
+
 const allowed = {
   tokens: ['dist/tokens.css','dist/tokens.json'],
-  'ui-core': ['dist/index.js','dist/index.d.ts','dist/styles.css'],
+  'ui-core': [
+    'dist/index.js','dist/index.d.ts','dist/styles.css',
+    'dist/src/classNames.d.ts','dist/src/input.d.ts','dist/src/layout.d.ts',...declarationFiles(coreComponents),
+  ],
   'ui-box': ['dist/index.js','dist/index.d.ts','dist/styles.css','dist/overrides.css','dist/overrides.json',
-    'dist/patterns.css','dist/tokens.css','dist/tokens.json'],
+    'dist/patterns.css','dist/tokens.css','dist/tokens.json',...declarationFiles(boxComponents)],
 };
 const archives = {};
 for (const name of names) {
@@ -55,8 +86,8 @@ assert.equal(patch.size.thumb,'20px');
 for (const group of Object.keys(resolved)) {
   assert.deepEqual(resolved[group],{...base[group], ...patch[group]});
 }
-const coreExports = ['Icon','Text','Button','IconButton','Switch','Slider','Progress','StatusIndicator','Link','Row','Stack','iconNames'];
-const boxExports = [...coreExports,'NetworkRow','VolumeControl','DecisionActions'];
+const coreExports = [...coreComponents, 'iconNames'];
+const boxExports = [...coreExports, ...boxComponents];
 const typescript = path.resolve('node_modules/.bin/tsc');
 
 async function consumer(name, selected, reactArchive) {
@@ -88,7 +119,30 @@ async function consumer(name, selected, reactArchive) {
       const example = isBox
         ? "import { VolumeControl, Stack } from '@nearic/ui-box'; export const e=<Stack data-family='box'><VolumeControl value={60} onChange={v=>v.toFixed()}/></Stack>;"
         : "import { Switch, Icon } from '@nearic/ui-core'; export const e=<><Switch label='Sound' defaultChecked/><Icon name='wifi'/></>;";
-      await writeFile(path.join(cwd,'example.tsx'),example);
+      const inputContract = `
+        import { Slider, Switch as Toggle } from '${entry}';
+        <Toggle label="Notifications" name="notifications" value="on" defaultChecked />;
+        <Toggle label="Notifications" checked={true} onChange={event => event.currentTarget.checked} />;
+        <Slider label="Volume" min={0} max={100} step="any" defaultValue={50} />;
+        <Slider label="Volume" value="60" onChange={event => event.currentTarget.valueAsNumber} />;
+        // @ts-expect-error Switch has no numeric range.
+        <Toggle label="Notifications" min={0} />;
+        // @ts-expect-error Switch has no numeric range.
+        <Toggle label="Notifications" max={100} />;
+        // @ts-expect-error Switch has no numeric step.
+        <Toggle label="Notifications" step={5} />;
+        // @ts-expect-error Choose either controlled or uncontrolled state.
+        <Toggle label="Notifications" checked={true} defaultChecked={false} />;
+        // @ts-expect-error Slider has no checkbox state.
+        <Slider label="Volume" checked={true} />;
+        // @ts-expect-error Slider has no initial checkbox state.
+        <Slider label="Volume" defaultChecked={false} />;
+        // @ts-expect-error Slider takes a single scalar value.
+        <Slider label="Volume" value={['10', '20']} />;
+        // @ts-expect-error Choose either controlled or uncontrolled value.
+        <Slider label="Volume" value={60} defaultValue={30} />;
+      `;
+      await writeFile(path.join(cwd,'example.tsx'),example + inputContract);
       execFileSync(typescript,['--noEmit','--strict','--jsx','react-jsx','--module','NodeNext','--target','es2022','example.tsx'],{cwd,stdio:'inherit'});
       runtime += `
         const api=await import('${entry}');
@@ -121,3 +175,9 @@ try {
 } finally {
   await rm(peers,{recursive:true,force:true});
 }
+
+const componentTests = [
+  ...coreComponents.map(name => 'packages/ui-core/src/' + name + '/' + name + '.test.mjs'),
+  ...boxComponents.map(name => 'packages/ui-box/src/' + name + '/' + name + '.test.mjs'),
+];
+execFileSync(process.execPath, ['--test', ...componentTests], { stdio: 'inherit' });

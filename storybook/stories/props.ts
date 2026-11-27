@@ -37,7 +37,6 @@ export const children = {
   control: 'text' as const,
 };
 export const className = stringProp('Дополнительный класс корневого элемента.');
-export const disabled = bool('Отключает ввод, нажатия и переход к контролу по Tab.', 'false');
 export const label = stringProp('Доступное имя, которое озвучивает программа чтения с экрана.', true);
 export const onClick = callback('Срабатывает при активации мышью, касанием или клавиатурой.', 'MouseEventHandler<HTMLButtonElement>');
 export const changeInput = callback('После изменения прочитайте новое значение из event.currentTarget.', 'ChangeEventHandler<HTMLInputElement>');

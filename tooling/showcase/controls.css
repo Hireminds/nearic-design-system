@@ -1,0 +1,190 @@
+/* The enclosing catalog already supplies the preview frame. Let its divider
+   run edge to edge while the story keeps its own platform-specific padding. */
+.sb-show-main.sb-main-padded:has(.nearic-demo-layout) { padding: 0; }
+
+.nearic-demo-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-inline-size: 0;
+  container: nearic-showcase / inline-size;
+}
+.nearic-demo-stage {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  min-inline-size: 0;
+  min-block-size: 8rem;
+  padding: var(--space-inset);
+}
+:where(.nearic-demo-stage > .box-example) { text-align: center; }
+:where(.nearic-demo-stage > .box-example > *) { text-align: start; }
+
+.nearic-demo-controls {
+  --demo-surface: color-mix(in srgb, var(--colors-surface) 65%, var(--colors-canvas));
+  --demo-field: color-mix(in srgb, var(--colors-surface) 30%, var(--colors-canvas));
+  --demo-edge: color-mix(in srgb, var(--colors-outline) 64%, var(--demo-field));
+  box-sizing: border-box;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  overflow-wrap: anywhere;
+  border: 0;
+  background: var(--demo-surface);
+  color: var(--colors-text);
+  font: 400 1rem/1.4 system-ui, sans-serif;
+  color-scheme: dark;
+  container-type: inline-size;
+}
+.nearic-demo-heading, .nearic-demo-disclosure {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-inline);
+  inline-size: 100%;
+  min-block-size: var(--size-touch);
+  padding: var(--space-inline) var(--space-inset);
+  color: var(--colors-text);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -.015em;
+}
+.nearic-demo-heading { float: inline-start; }
+.nearic-demo-disclosure {
+  display: none;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+.nearic-demo-heading svg, .nearic-demo-disclosure svg { flex: none; color: var(--colors-accent); }
+.nearic-demo-disclosure .nearic-demo-chevron {
+  margin-inline-start: auto;
+  transform: rotate(90deg);
+  color: var(--colors-muted);
+}
+.nearic-demo-disclosure[aria-expanded="true"] .nearic-demo-chevron { transform: rotate(-90deg); }
+.nearic-demo-disclosure:focus-visible {
+  outline: var(--size-focus) solid var(--colors-focus);
+  outline-offset: calc(-1 * var(--size-focus));
+}
+
+/* Leave room for a 320px device preview and its 280–320px inspector.
+   With no editable props no second grid track is created. */
+@container nearic-showcase (min-width: 40rem) {
+  .nearic-demo-stage { grid-area: 1 / 1; min-block-size: 11rem; }
+  .nearic-demo-controls {
+    grid-area: 1 / 2;
+    inline-size: clamp(17.5rem, 32cqi, 20rem);
+    border-inline-start: 1px solid var(--colors-line);
+  }
+}
+@container nearic-showcase (width < 40rem) {
+  .nearic-demo-controls { border-block-start: 1px solid var(--colors-line); }
+  .nearic-demo-heading { display: none; }
+  .nearic-demo-disclosure { display: flex; }
+  .nearic-demo-disclosure[aria-expanded="false"] + .nearic-demo-fields { display: none; }
+}
+
+.nearic-demo-fields {
+  display: grid;
+  clear: both;
+  gap: var(--space-inline);
+  padding: var(--space-inline) var(--space-inset);
+}
+.nearic-demo-field {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: center;
+  gap: var(--space-gap) var(--space-inline);
+  min-inline-size: 0;
+}
+.nearic-demo-label {
+  color: var(--colors-muted);
+  font-size: .875rem;
+  font-weight: 550;
+}
+.nearic-demo-input {
+  box-sizing: border-box;
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--size-touch);
+  padding: 0 var(--space-inline);
+  border: 1px solid var(--demo-edge);
+  border-radius: var(--radius-control);
+  background: var(--demo-field);
+  color: var(--colors-text);
+  font: inherit;
+  font-size: .9375rem;
+}
+.nearic-demo-input:hover { border-color: var(--colors-outline); }
+.nearic-demo-controls :is(input, select):focus-visible {
+  outline: var(--size-focus) solid var(--colors-focus);
+  outline-offset: 2px;
+}
+.nearic-demo-input[type="number"] { font-variant-numeric: tabular-nums; }
+.nearic-demo-select { position: relative; min-inline-size: 0; }
+.nearic-demo-select select {
+  appearance: none;
+  padding-inline-end: calc(var(--space-inline) * 2 + var(--size-icon-small));
+  cursor: pointer;
+}
+.nearic-demo-select svg {
+  position: absolute;
+  inset-inline-end: var(--space-inline);
+  inset-block-start: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  color: var(--colors-muted);
+  pointer-events: none;
+}
+
+.nearic-demo-range {
+  grid-template-columns: minmax(0, 1fr) auto;
+  row-gap: 0;
+}
+.nearic-demo-reading {
+  justify-self: end;
+  color: var(--colors-accent);
+  font-size: 1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.nearic-demo-range input { grid-column: 1 / -1; accent-color: var(--colors-accent); }
+.nearic-demo-bounds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-gap);
+}
+.nearic-demo-bounds .nearic-demo-field {
+  flex: 1 1 4.3rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-compact);
+}
+.nearic-demo-bounds .nearic-demo-label { font-size: .8125rem; }
+.nearic-demo-switch {
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-block-size: var(--size-touch);
+  cursor: pointer;
+}
+.nearic-demo-switch .nearic-demo-label { color: var(--colors-text); }
+.nearic-demo-switch:last-child:not(:first-child) {
+  border-block-start: 1px solid var(--colors-line);
+  padding-block-start: var(--space-gap);
+}
+
+@container (max-width: 15rem) {
+  .nearic-demo-field:not(.nearic-demo-switch, .nearic-demo-range) {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-compact);
+  }
+}
+
+@media (forced-colors: active) {
+  .nearic-demo-layout .nearic-demo-controls, .nearic-demo-input { border-color: ButtonText; }
+  .nearic-demo-disclosure:focus-visible { outline-color: Highlight; }
+  .nearic-demo-select select { appearance: auto; padding-inline-end: var(--space-inline); }
+  .nearic-demo-select svg { display: none; }
+  .nearic-demo-controls :is(input, select):focus-visible { outline-color: Highlight; }
+}

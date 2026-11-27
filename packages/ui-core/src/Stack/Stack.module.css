@@ -1,0 +1,2 @@
+.root { display: flex; gap: var(--space-gap); min-inline-size: 0; }
+.root { flex-direction: column; align-items: flex-start; }

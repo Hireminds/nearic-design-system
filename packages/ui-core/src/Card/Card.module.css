@@ -1,0 +1,9 @@
+.root {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: var(--space-inline) var(--space-inset);
+  border-radius: var(--radius-panel);
+  color: var(--colors-text);
+  background: var(--colors-surface);
+}

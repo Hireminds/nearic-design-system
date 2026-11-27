@@ -1,0 +1,6 @@
+.root { font: inherit; font-size: var(--type-body); }
+.root[data-variant=title] { font-size: var(--type-title); line-height: 1.12; font-weight: 650; }
+.root[data-variant=heading] { font-size: var(--type-heading); font-weight: 650; }
+.root[data-variant=control] { font-size: var(--type-control); font-weight: 600; }
+.root[data-variant=label] { font-size: var(--type-label); }
+.root[data-muted] { color: var(--colors-muted); }

@@ -1,0 +1,14 @@
+.root {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--size-touch);
+}
+.content { flex: 1; flex-wrap: nowrap; }
+.content > :not(.value) { flex-shrink: 0; }
+.value {
+  min-inline-size: 0;
+  margin-inline-start: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

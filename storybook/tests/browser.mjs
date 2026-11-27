@@ -6,15 +6,17 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 import { expect } from 'playwright/test';
 import * as box from '@nearic/ui-box';
+import { checkStaticCatalog } from './static-catalog.mjs';
 
-const directory = fileURLToPath(new URL('../../dist/storybook/', import.meta.url));
-const prefix = '/nearic-design-system/storybook/';
+const directory = fileURLToPath(new URL('../../dist/', import.meta.url));
+const prefix = '/nearic-design-system/';
 const types = { '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.html': 'text/html', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (!url.pathname.startsWith(prefix)) { res.writeHead(404).end(); return; }
-  const relative = decodeURIComponent(url.pathname.slice(prefix.length)) || 'index.html';
-  const file = path.resolve(directory, relative);
+  const relative = decodeURIComponent(url.pathname.slice(prefix.length));
+  const requestedFile = relative.endsWith('/') || relative === '' ? relative + 'index.html' : relative;
+  const file = path.resolve(directory, requestedFile);
   if (!file.startsWith(directory)) { res.writeHead(404).end(); return; }
   try {
     const data = await readFile(file);
@@ -56,7 +58,8 @@ async function checkSwitchShape(control) {
 }
 
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-const base = 'http://127.0.0.1:' + server.address().port + prefix;
+const catalog = 'http://127.0.0.1:' + server.address().port + prefix;
+const base = catalog + 'storybook/';
 let browser;
 try {
   const legacyCSS = process.argv[2] && await readFile(process.argv[2], 'utf8');
@@ -96,20 +99,177 @@ try {
 
   const index = await (await fetch(base + 'index.json')).json();
   const entries = Object.values(index.entries);
+
   const components = Object.keys(box).filter(name => /^[A-Z]/.test(name));
-  assert.equal(components.length, 14, 'Update coverage when the public component list changes');
+  assert(components.includes('Card'), 'The BOX profile must export the reusable surface');
   for (const component of components) {
     const group = entries.filter(entry => entry.title === 'BOX/' + component);
     const docs = group.find(entry => entry.type === 'docs'), story = group.find(entry => entry.type === 'story');
     assert(docs && story, 'Missing documentation or live example for ' + component);
     await direct(docs.id, 'docs');
-    await expect(page.getByRole('heading', { name: 'Свойства', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Свойства', exact: true }), docs.id).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('table').first()).toContainText('Default');
     await expect(page.getByRole('heading', { name: 'Пример TSX' })).toBeVisible();
     await expect(page.locator('pre').filter({ hasText: 'from' }).first()).toContainText('@nearic/ui-box');
     await direct(story.id);
     await expect(page.locator('#storybook-root [data-family="box"][data-platform="box"]').first()).toBeVisible();
   }
+
+  await page.goto(catalog);
+  const items = await page.evaluate(() => ['atoms','components'].flatMap(section =>
+    window.catalogData[section].map(({id,component}) => ({id,component,section}))));
+  assert.deepEqual(items.map(item => item.component).sort(), [...components].sort());
+  await checkStaticCatalog(browser, catalog, entries, items);
+  const componentPages = page.locator('.nav-entries a[href$=".html"]');
+  await expect(componentPages).toHaveCount(components.length);
+  const routes = await componentPages.evaluateAll(links => links.map(link => link.href));
+  const catalogDocs = [];
+  for (const route of routes) {
+    await page.goto(route);
+    const link = page.getByRole('link', { name: 'Свойства и TSX в Storybook' });
+    await expect(link).toBeVisible();
+    catalogDocs.push(await link.evaluate(element => new URL(element.href).searchParams.get('path')));
+  }
+  assert.deepEqual(catalogDocs.sort(), entries.filter(entry => entry.type === 'docs').map(entry => '/docs/' + entry.id).sort());
+
+  // The prebuilt showcase and its generated controls
+  // update the same args, including a boolean inherited from native HTML inputs.
+  await page.goto(catalog + '#box/atoms/slider');
+  const demo = page.locator('[data-nearic-live][data-live-ready="true"]');
+  const panel = demo.getByRole('group', { name: 'Параметры', exact: true });
+  const slider = demo.getByRole('slider', { name: 'Яркость', exact: true });
+  const sliderControl = panel.getByRole('slider', { name: 'Значение', exact: true });
+  const lock = panel.getByRole('switch', { name: 'Блокировка', exact: true });
+  await expect(slider).toHaveValue('60');
+  await lock.focus();
+  await lock.press('Space');
+  await expect(lock).toBeChecked();
+  await expect(slider).toBeDisabled();
+  await lock.press('Space');
+  await expect(lock).not.toBeChecked();
+  await expect(slider).toBeEnabled();
+  await slider.focus();
+  await slider.press('ArrowRight');
+  await expect(sliderControl).toHaveValue('65');
+  await sliderControl.press('Home');
+  await expect(slider).toHaveValue('0');
+  const minimum = panel.getByRole('spinbutton', { name: 'Минимум', exact: true });
+  await minimum.fill('-10');
+  await minimum.press('Tab');
+  await expect(slider).toHaveAttribute('min', '-10');
+  await expect(sliderControl).toHaveAttribute('min', '-10');
+  await sliderControl.press('Home');
+  await expect(slider).toHaveValue('-10');
+  // On a roomy canvas the inspector occupies the right column.
+  const stage = demo.locator('.nearic-demo-stage');
+  const area = await stage.boundingBox();
+  const sidebar = await panel.boundingBox();
+  assert(area && sidebar && sidebar.x >= area.x + area.width - 1);
+  assert(sidebar.width >= 279 && sidebar.width <= 321);
+  const toggle = panel.getByRole('button', { name: 'Параметры', exact: true });
+  await expect(toggle).toBeHidden();
+
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(minimum).toBeHidden();
+    const compact = await stage.boundingBox();
+    const trigger = await toggle.boundingBox();
+    assert(compact && trigger && trigger.y >= compact.y + compact.height - 1);
+    await toggle.focus();
+    await toggle.press('Enter');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(minimum).toHaveValue('-10');
+    await expect.poll(() => panel.evaluate(group => {
+      const root = group.ownerDocument.documentElement;
+      const bounds = group.getBoundingClientRect();
+      return root.scrollWidth <= root.clientWidth + 1 &&
+        [...group.querySelectorAll('input, select')].every(input => {
+          const field = input.getBoundingClientRect();
+          return field.left >= bounds.left - 1 && field.right <= bounds.right + 1;
+        });
+    }), { message: 'Controls must fit the preview at ' + width + ' px' }).toBe(true);
+    await toggle.press('Space');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(minimum).toBeHidden();
+  }
+
+  await page.goto(catalog + '#box/atoms/button');
+  const buttonDemo = page.locator('[data-nearic-live][data-live-ready="true"]');
+  const buttonPanel = buttonDemo.getByRole('group', { name: 'Параметры', exact: true });
+  const buttonToggle = buttonPanel.getByRole('button', { name: 'Параметры', exact: true });
+  await expect(buttonToggle).toHaveAttribute('aria-expanded', 'false');
+  await buttonToggle.click();
+  const caption = buttonPanel.getByRole('textbox', { name: 'Содержимое', exact: true });
+  await caption.fill('');
+  await caption.pressSequentially('Nearic BOX');
+  const sampleButton = buttonDemo.getByRole('button', { name: 'Nearic BOX', exact: true });
+  await expect(sampleButton).toBeEnabled();
+  const variant = buttonPanel.getByRole('combobox', { name: 'Вариант', exact: true });
+  await variant.selectOption('destructive');
+  await expect(sampleButton).toHaveAttribute('data-variant', 'destructive');
+  await buttonPanel.getByRole('switch', { name: 'Блокировка' }).click();
+  await expect(sampleButton).toBeDisabled();
+  await buttonToggle.click();
+  await expect(caption).toBeHidden();
+  await buttonToggle.click();
+  await expect(caption).toHaveValue('Nearic BOX');
+  await expect(variant).toHaveValue('destructive');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(buttonToggle).toBeHidden();
+  await expect(caption).toBeVisible();
+  await expect(sampleButton).toBeDisabled();
+
+  await page.goto(catalog + '#box/components/box-actions');
+  const decision = page.locator('[data-nearic-live][data-live-ready="true"]');
+  await decision.getByRole('button', { name: 'Запустить', exact: true }).click();
+  const reset = decision.getByRole('button', { name: 'Сбросить', exact: true });
+  await expect(reset).toBeFocused();
+  await expect(decision.locator('[data-feedback]')).toHaveText('Подтверждено');
+  await reset.click();
+  await expect(decision.getByRole('button', { name: 'Позже', exact: true })).toBeFocused();
+  await expect(decision.locator('[data-feedback]')).toHaveText('Ожидается ответ');
+
+  await page.goto(catalog + '?lang=en#box/components/box-volume');
+  const volume = page.locator('[data-nearic-live][data-live-ready="true"]');
+  await volume.getByRole('button', { name: 'Прибавить громкость' }).click();
+  const level = volume.getByRole('slider', { name: 'Level', exact: true });
+  await expect(level).toHaveValue('70');
+  await level.press('Home');
+  await level.press('ArrowRight');
+  await expect(volume.locator('.nr-volume output')).toHaveText('1%');
+  await volume.getByRole('switch', { name: 'Lock example', exact: true }).click();
+  await expect(volume.getByRole('button', { name: 'Прибавить громкость' })).toBeDisabled();
+
+  await page.setViewportSize({ width: 320, height: 240 });
+  await direct('box-volumecontrol--adjust');
+  await expect(page.locator('.nearic-demo-layout')).toHaveCount(0);
+  const card = page.locator('.nr-card.nr-volume');
+  await expect(card).toBeVisible();
+  for (const button of await card.getByRole('button').all()) {
+    const bounds = await button.boundingBox();
+    assert(bounds && bounds.height >= 44 && bounds.width >= 44);
+  }
+  const ssid = 'W'.repeat(32);
+  await direct('box-networkrow--long-name');
+  const network = page.locator('.nr-network');
+  const networkName = network.locator('[data-field=connection]');
+  await expect(network).toBeVisible();
+  await expect(networkName).toHaveText(ssid);
+  await expect(networkName).toHaveAttribute('title', ssid);
+  await expect(networkName).toHaveCSS('text-overflow', 'ellipsis');
+  assert.match(await network.ariaSnapshot(), new RegExp(ssid));
+  const sizes = await network.evaluate(row => {
+    const name = row.querySelector('[data-field=connection]');
+    const rowBounds = row.getBoundingClientRect();
+    const nameBounds = name.getBoundingClientRect();
+    return { rowRight: rowBounds.right, nameRight: nameBounds.right, nameLength: name.scrollWidth, nameWidth: name.clientWidth };
+  });
+  assert(sizes.nameRight <= sizes.rowRight && sizes.nameLength > sizes.nameWidth, 'Long SSID must be visibly clipped inside the Wi-Fi row');
+  await direct('box-networkrow--offline');
+  await expect(networkName).toHaveText('Вне сети');
+  await expect(networkName).not.toHaveAttribute('title', /.+/);
+  await page.setViewportSize({ width: 1280, height: 960 });
 
   await page.goto(base + '?path=/story/box-iconbutton--variants');
   const preview = page.frameLocator('#storybook-preview-iframe');
@@ -140,7 +300,7 @@ try {
   await managerSwitch.click(); await expect(page.locator('#control-checked')).not.toBeChecked();
   await page.locator('#control-disabled').press('Space'); await expect(managerSwitch).toBeDisabled();
   assert.deepEqual(errors, []);
-  console.log('14 typed components with Docs and live samples. Switch geometry, keyboard, disabled states and manager Controls passed.');
+  console.log(components.length + ' typed components with Docs, catalog links and live samples. Switch geometry, long SSID at 320px, keyboard, disabled states and Controls passed.');
   await context.close();
 } finally {
   await browser?.close();
