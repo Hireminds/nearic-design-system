@@ -113,7 +113,7 @@ export function createExamples(csf: CsfModule, config: Config) {
     const store: ArgStore = [args, update, reset];
     const context: Context = { id: story.id, title: csf.default.title, name: story.name, args,
       initialArgs: story.args, parameters: story.parameters, argTypes,
-      component: csf.default.component, globals: {}, viewMode: 'story' };
+      component: csf.default.component, globals: { locale: lang }, viewMode: 'story' };
     const content = <ArgsContext.Provider value={store}>
       <RenderContext.Provider value={context}><story.View key={story.View === DefaultView ? undefined : selected.revision} /></RenderContext.Provider>
     </ArgsContext.Provider>;

@@ -17,6 +17,7 @@ export async function buildShowcases({ components, propsFile, outDir, previewCla
   const dest = path.resolve(outDir, 'live');
   const resolve = createRequire(path.resolve('package.json')).resolve;
   await mkdir(path.join(dest, 'assets'), { recursive: true });
+  await mkdir(path.join(dest, 'styles'), { recursive: true });
   const registry = new Map();
   for (const { id, storyFile, component } of components) {
     if (!/^[a-z][a-z0-9-]*$/.test(id) || registry.has(id)) throw new Error('Invalid or duplicate showcase id: ' + id);
@@ -71,17 +72,25 @@ export async function buildShowcases({ components, propsFile, outDir, previewCla
 
   const server = path.join(dest,'_render.js');
   try {
-    await build({ entryPoints: [...registry.keys(), '_render'].map(id => ({ in:'nearic-entry:' + id, out:id })),
+    const bundle = await build({ metafile: true, entryPoints: [...registry.keys(), '_render'].map(id => ({ in:'nearic-entry:' + id, out:id })),
       outdir: dest, plugins: [adapters], format:'esm', platform:'browser', jsx:'automatic', target:'es2022',
       bundle:true, splitting:true, chunkNames:'chunks/[name]-[hash]', minify:true,
       define:{'process.env.NODE_ENV':'"production"'} });
+    for (const input of Object.keys(bundle.metafile.inputs)) {
+      if (/(?:^|\/)node_modules\/(?:storybook|@storybook\/[^/]+)\/dist\//.test(input))
+        throw new Error('Showcase unexpectedly depends on a Storybook runtime module: ' + input);
+    }
+    const styles = new Set();
     const { renderToString, renderToStaticMarkup } = await import(pathToFileURL(server));
     const result = [];
     for (const {id,component,docsId,index,locales} of registry.values()) {
       const {element} = await import(pathToFileURL(path.join(dest,id+'.js')));
       const primaryId = index[0].id;
-      const states = index.map(({id:storyId,name}) => ({id:storyId,name,
-        html: renderToStaticMarkup(element(storyId,'ru',true), {identifierPrefix:'sample-'+storyId+'-'})}));
+      const states = index.map(({id:storyId,name}) => {
+        const htmlByLocale = Object.fromEntries(Object.keys(locales).map(lang => [lang,
+          renderToStaticMarkup(element(storyId,lang,true), {identifierPrefix:'sample-'+storyId+'-'})]));
+        return {id:storyId, name, html:htmlByLocale.ru, htmlByLocale};
+      });
       const liveHTML = {};
       for (const lang of Object.keys(locales)) {
         const prefix='live-'+primaryId+'-';
@@ -89,7 +98,17 @@ export async function buildShowcases({ components, propsFile, outDir, previewCla
         const button=component==='Button';
         liveHTML[lang]='<div data-nearic-live'+(button?' data-nearic-button-live':'')+' data-story="'+primaryId+'" data-lang="'+lang+'" data-prefix="'+prefix+'"><div data-nearic-island'+(button?' data-nearic-button-island':'')+' inert>'+html+'</div></div>';
       }
-      result.push({id,component,docsId,primaryId,states,liveHTML,runtimeURL:'./live/'+id+'.js', styleURL:'./live/'+id+'.css'});
+      // esbuild emits a CSS file per entry, including when every byte is identical.
+      // Share the content-addressed stylesheet across component pages and languages.
+      const cssFile = path.join(dest, id + '.css');
+      const css = await readFile(cssFile);
+      const cssName = createHash('sha256').update(css).digest('hex').slice(0, 16) + '.css';
+      if (!styles.has(cssName)) {
+        await writeFile(path.join(dest, 'styles', cssName), css);
+        styles.add(cssName);
+      }
+      await rm(cssFile);
+      result.push({id,component,docsId,primaryId,states,liveHTML,runtimeURL:'./live/'+id+'.js', styleURL:'./live/styles/'+cssName});
     }
     return result;
   } finally {
