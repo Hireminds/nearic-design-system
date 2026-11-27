@@ -19,8 +19,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify
-      - name: Build typed BOX stories
-        run: npm run build --workspace @nearic/box-storybook
       - name: Install Chromium for component checks
         run: npx --no-install playwright install --with-deps chromium
       - name: Check stories, controls and switch geometry

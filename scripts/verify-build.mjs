@@ -14,7 +14,12 @@ const files = [
   '.nojekyll','catalog.css','catalog.js','data.js','downloads','downloads/package.json',
   'index.html','runtime.js','styles.css','tokens.css',...names.map(name=>'downloads/' + packages['@nearic/'+name].filename),
 ];
-assert.deepEqual((await readdir('dist',{recursive:true})).sort(),files.sort());
+const output = await readdir('dist', { recursive: true });
+const catalogFiles = output.filter(name => name !== 'storybook' && !name.startsWith('storybook/'));
+assert.deepEqual(catalogFiles.sort(), files.sort());
+for (const name of ['index.html', 'iframe.html', 'index.json']) {
+  assert(output.includes('storybook/' + name), 'The build must ship the Storybook catalog depends on: ' + name);
+}
 
 // Only package entry points, component declarations and exact bundled siblings ship.
 const coreComponents = [
