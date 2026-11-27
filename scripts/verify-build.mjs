@@ -12,6 +12,7 @@ const names = ['tokens','ui-core','ui-box'];
 assert.deepEqual(Object.keys(packages), names.map(name => '@nearic/' + name));
 const files = [
   '.nojekyll','catalog.css','catalog.js','data.js','downloads','downloads/package.json',
+  'button.html','button.en.html','button-live.js','button-live.css','navigation.js',
   'index.html','runtime.js','styles.css','tokens.css',...names.map(name=>'downloads/' + packages['@nearic/'+name].filename),
 ];
 const output = await readdir('dist', { recursive: true });

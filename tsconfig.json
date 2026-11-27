@@ -17,6 +17,7 @@
     "packages/**/*.tsx",
     "catalog/**/*.tsx",
     "catalog/runtime.ts",
+    "tooling/showcase/**/*.tsx",
     "packages/**/*.d.ts"
   ],
   "exclude": [

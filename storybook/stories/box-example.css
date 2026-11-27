@@ -1,0 +1,18 @@
+.box-example {
+  box-sizing: border-box;
+  width: min(100%, 320px);
+  padding: var(--space-inset);
+  background: var(--colors-canvas);
+  color: var(--colors-text);
+  border-radius: var(--radius-panel);
+  font-family: system-ui, sans-serif;
+}
+.box-example .story-samples {
+  display: grid;
+  gap: var(--space-inset);
+}
+.box-example .story-samples > div {
+  display: grid;
+  gap: var(--space-gap);
+  justify-items: start;
+}

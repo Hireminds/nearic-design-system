@@ -1,7 +1,6 @@
-import {mountBuilder} from './runtime.js';
+import { chapters, groups, navigationHTML, route } from './navigation.js';
 
 const {tokens, atoms, components} = window.catalogData;
-const chapters = {atoms:'Атомы', builder:'Конструктор', components:'Составные блоки', foundations:'Основы'};
 const storyGroups = new Map();
 let indexMessage = 'Загружаем примеры…';
 
@@ -20,12 +19,8 @@ async function loadStories() {
   } catch {
     indexMessage = 'Не удалось загрузить примеры Storybook. Обновите страницу, чтобы повторить.';
   }
-  if (['', 'atoms', 'components'].includes(current.section)) render();
+  if (['', 'atoms', 'components'].includes(current.section) && !isButtonPage(current)) render();
 }
-const groups = {
-  colors:'Цвета', type:'Типографика', space:'Отступы', radius:'Скругления',
-  size:'Размеры и касание', motion:'Движение', opacity:'Прозрачность'
-};
 const groupUse = {
   colors:'Цвета действий, системных функций, состояний и поверхностей.',
   type:'Размеры текста для заголовков, значений и элементов управления.',
@@ -44,8 +39,12 @@ const navigation = $('#navigation'), page = $('#page'), crumb = $('#crumb');
 const mobileMenu = matchMedia('(max-width: 800px)');
 let current;
 let cleanPage;
+let storyLoad;
+const originalButtonPage = page.querySelector('[data-button-page]')?.cloneNode(true);
+
 
 function readRoute() {
+  if (!location.hash && document.documentElement.hasAttribute('data-button-permalink')) return {section:'atoms',entry:'button'};
   const [prefix, sectionKey = '', entryKey = ''] = location.hash.slice(1).split('/');
   if (prefix !== 'box') return {section:'', entry:''};
   const section = Object.hasOwn(chapters,sectionKey) ? sectionKey : '';
@@ -57,40 +56,11 @@ function readRoute() {
   }
   return {section, entry};
 }
-function route(section = '', entry = '') {
-  return '#' + ['box', section, entry].filter(Boolean).join('/');
-}
 function safeText(value) {
   return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 }
-const icons = {
-  overview:'<rect x="3" y="3" width="7" height="7" rx="1.7"/><rect x="14" y="3" width="7" height="7" rx="1.7"/><rect x="3" y="14" width="7" height="7" rx="1.7"/><rect x="14" y="14" width="7" height="7" rx="1.7"/>'
-};
-function icon(id) {return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">'+icons[id]+'</svg>';}
-function navLink(section, entry, label) {
-  const selected = current.section === section && current.entry === entry;
-  return '<a href="'+route(section,entry)+'" '+(selected?'aria-current="page"':'')+'>'+label+'</a>';
-}
 function renderNav() {
-  const query = search.value.trim().toLocaleLowerCase('ru');
-  const match = (...fields) => fields.join(' ').toLocaleLowerCase('ru').includes(query);
-  const nav = [];
-  if (!query) nav.push('<div class="nav-overview">'+navLink('','',icon('overview')+'Обзор')+'</div>');
-  for (const section of Object.keys(chapters)) {
-    let entries = [];
-    if (section === 'builder') {
-      if (!match('конструктор собрать сборка builder')) continue;
-    } else if (section === 'foundations') {
-      entries = Object.keys(tokens.box).filter(id => match('основы токены',id,groups[id])).map(id => navLink(section,id,groups[id]));
-    } else {
-      entries = sectionItems(section).filter(item => match(chapters[section], item.name,item.group,item.id)).map(item => navLink(section,item.id,item.name));
-    }
-    if (entries.length || section === 'builder') {
-      nav.push('<div class="nav-chapter">'+navLink(section,'',chapters[section])+'</div>');
-      if (entries.length) nav.push('<div class="nav-entries">'+entries.join('')+'</div>');
-    }
-  }
-  navigation.innerHTML = nav.join('') || '<p class="not-found" role="status">Совпадений нет. Попробуйте другое название.</p>';
+  navigation.innerHTML = navigationHTML(window.catalogData, current, search.value);
 }
 function pageTitle(title, description, badge = '') {
   return '<div class="page-title"><h1>'+title+'</h1>'+(description?'<p>'+description+'</p>':'')+badge+'</div>';
@@ -215,6 +185,40 @@ function menu(open) {
   menuButton.setAttribute('aria-expanded',String(open));
   sidebar.classList.toggle('open',open);
 }
+function isButtonPage(route) {
+  return route.section === 'atoms' && route.entry === 'button' && originalButtonPage;
+}
+function openButtonPage() {
+  // Reuse the server-rendered first paint, restoring it only after navigating back.
+  if (!page.querySelector('[data-button-page]')) page.replaceChildren(originalButtonPage.cloneNode(true));
+  // A fragment resolved before an SPA navigation inserted its target does not
+  // retroactively match :target in Chromium. Show the restored page explicitly.
+  page.querySelector('[data-button-page]').setAttribute('data-active-page', '');
+  const host = page.querySelector('[data-nearic-button-live]');
+  let canceled = false;
+  let unmount;
+  const chooseState = event => {
+    const control = event.target.closest('[data-select-story]');
+    if (!control) return;
+    host.dispatchEvent(new CustomEvent('nearic:select-story', { detail: control.dataset.selectStory }));
+    for (const button of page.querySelectorAll('[data-select-story]'))
+      button.setAttribute('aria-pressed', String(button === control));
+  };
+  const enableSelections = () => {
+    for (const button of page.querySelectorAll('[data-select-story]')) button.disabled = false;
+  };
+  page.addEventListener('nearic:button-ready', enableSelections);
+  page.addEventListener('click', chooseState);
+  import('./button-live.js').then(({mountButton}) => {
+    if (!canceled) unmount = mountButton(host);
+  }).catch(error => console.error('Button live controls could not initialize', error));
+  return () => {
+    canceled = true;
+    page.removeEventListener('nearic:button-ready', enableSelections);
+    page.removeEventListener('click', chooseState);
+    unmount?.();
+  };
+}
 function render() {
   if (typeof cleanPage === 'function') cleanPage();
   cleanPage = undefined;
@@ -227,7 +231,18 @@ function render() {
     (entry?'<a href="'+route(section)+'">'+chapters[section]+'</a><span class="crumb-sep">/</span>':'')+'<b>'+name+'</b>':'');
   if(section==='builder'){
     page.innerHTML=pageTitle('Конструктор','Соберите строку настройки из базовых элементов.')+'<div id="builder"></div>';
-    cleanPage = mountBuilder($('#builder'));
+    const target = $('#builder');
+    let unmount;
+    import('./runtime.js').then(({mountBuilder}) => {
+      if (target.isConnected) unmount = mountBuilder(target);
+    });
+    cleanPage = () => unmount?.();
+  }else if(isButtonPage(current)){
+    if (new URLSearchParams(location.search).get('lang') === 'en' && originalButtonPage.lang !== 'en') {
+      location.replace('./button.en.html' + location.search + location.hash);
+      return;
+    }
+    cleanPage = openButtonPage();
   }else{
     if(section==='foundations')page.innerHTML=foundationPage();
     else if(item)page.innerHTML=itemPage(item);
@@ -237,6 +252,8 @@ function render() {
   }
   renderNav();
   menu(false);
+  if (!isButtonPage(current) && ['', 'atoms', 'components'].includes(section))
+    storyLoad ??= loadStories();
 }
 document.querySelector('.skip').addEventListener('click',e=>{e.preventDefault();$('#content').focus();});
 menuButton.onclick=()=>{const open=!sidebar.classList.contains('open');menu(open);if(open)search.focus();};
@@ -249,4 +266,3 @@ document.addEventListener('keydown',e=>{
 });
 window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0);});
 render();
-loadStories();

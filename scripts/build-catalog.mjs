@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { cp, writeFile } from 'node:fs/promises';
+import { appendFile, cp, readFile, writeFile } from 'node:fs/promises';
 
 
 const result = await build({
@@ -17,6 +17,9 @@ if (!Object.keys(result.metafile.inputs).some(path => path.endsWith('packages/ui
   throw new Error('The catalog must import the built @nearic/ui-box package');
 }
 
+await cp('catalog/navigation.js', 'dist/navigation.js');
+await appendFile('dist/catalog.css', await readFile('storybook/stories/box-example.css'));
+await import('./build-button-page.mjs');
 await cp('packages/ui-box/dist/styles.css', 'dist/styles.css');
 await import('./pack.mjs');
 await writeFile('dist/.nojekyll', '');

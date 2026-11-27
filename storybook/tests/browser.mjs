@@ -6,6 +6,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 import { expect } from 'playwright/test';
 import * as box from '@nearic/ui-box';
+import { checkButtonPilot } from './button-pilot.mjs';
 
 const directory = fileURLToPath(new URL('../../dist/', import.meta.url));
 const prefix = '/nearic-design-system/';
@@ -98,6 +99,7 @@ try {
 
   const index = await (await fetch(base + 'index.json')).json();
   const entries = Object.values(index.entries);
+  await checkButtonPilot(browser, catalog, entries);
   const components = Object.keys(box).filter(name => /^[A-Z]/.test(name));
   assert(components.includes('Card'), 'The BOX profile must export the reusable surface');
   for (const component of components) {
@@ -189,7 +191,7 @@ try {
   }
 
   await page.goto(catalog + '#box/atoms/button');
-  const buttonDemo = page.frameLocator('iframe[src*="nearicDemo=1"]');
+  const buttonDemo = page.locator('[data-nearic-button-live][data-live-ready="true"]');
   const buttonPanel = buttonDemo.getByRole('group', { name: 'Параметры', exact: true });
   const buttonToggle = buttonPanel.getByRole('button', { name: 'Параметры', exact: true });
   await expect(buttonToggle).toHaveAttribute('aria-expanded', 'false');

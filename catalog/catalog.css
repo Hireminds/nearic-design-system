@@ -172,3 +172,21 @@ main {min-width:0;width:100%;max-width:1492px;padding:25px clamp(24px,3.7vw,68px
 .state-grid figure {margin:0; min-inline-size:0; border:1px solid var(--hair); border-radius:10px; background:var(--colors-canvas)}
 .state-grid figcaption {padding:10px 13px 0; font-size:13px; line-height:1.4; font-weight:500; color:var(--secondary)}
 @media(max-width:800px){.menu-button {margin-left:0}}
+
+/* Fragment links expose this generated sample even in a script-free catalog. */
+html:not([data-button-permalink]) [data-button-page]:not(:target, [data-active-page]) { display: none; }
+[data-button-page] { scroll-margin-block-start: 5rem; }
+[data-button-page] .state-grid figure { position: relative; }
+[data-button-page] .state-grid figcaption { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+[data-button-page] [data-select-story] {
+  padding: 0; border: 0; color: var(--colors-text); background: none;
+  text-align: start; font-weight: 600; cursor: pointer;
+}
+[data-button-page] [data-select-story]:enabled::after { content: ''; position: absolute; inset: 0; }
+[data-button-page] [data-select-story][aria-pressed="true"] { color: var(--colors-accent); }
+[data-button-page] figcaption a { z-index: 1; }
+.button-snapshot { min-height: 72px; display: grid; place-items: center; padding: var(--space-inset); background: var(--colors-canvas); }
+.button-snapshot [data-nearic-focus-trigger] { display: none; }
+.button-snapshot [data-nearic-focus-target] button {
+  outline: var(--size-focus) solid var(--colors-focus); outline-offset: 2px;
+}
