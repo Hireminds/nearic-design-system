@@ -171,8 +171,9 @@ try {
   const buttonDemo = page.frameLocator('iframe[src*="nearicDemo=1"]');
   const buttonPanel = buttonDemo.getByRole('group', { name: 'Параметры примера' });
   const caption = buttonPanel.getByRole('textbox', { name: 'Содержимое', exact: true });
-  await caption.fill('Сохранить');
-  const sampleButton = buttonDemo.getByRole('button', { name: 'Сохранить', exact: true });
+  await caption.fill('');
+  await caption.pressSequentially('Nearic BOX');
+  const sampleButton = buttonDemo.getByRole('button', { name: 'Nearic BOX', exact: true });
   await expect(sampleButton).toBeEnabled();
   const variant = buttonPanel.getByRole('combobox', { name: 'Вариант', exact: true });
   await variant.selectOption('destructive');

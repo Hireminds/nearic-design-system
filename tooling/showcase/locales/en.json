@@ -1,4 +1,6 @@
 {
+  "controls.default": "Default",
+  "controls.emptyString": "Empty string",
   "controls.lock": "Lock example",
   "controls.title": "Example controls",
   "props.common.checked": "Checked",

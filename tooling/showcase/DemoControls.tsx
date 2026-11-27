@@ -39,6 +39,52 @@ function NumberField({ value, min, max, step, required, onValue }: NumberProps) 
     }} />;
 }
 
+type PendingArg = { previous: unknown; sent: unknown; latest: unknown };
+
+function useLiveArgs(args: Args, updateArgs: Props['updateArgs']) {
+  const pending = React.useRef(new Map<string, PendingArg>());
+  const [, redraw] = React.useReducer((revision: number) => revision + 1, 0);
+
+  // Storybook echoes updates asynchronously. Keep one in flight per field and send
+  // its latest edit on acknowledgement so older echoes cannot rewind the input.
+  React.useLayoutEffect(() => {
+    const changes: Args = {};
+    let replaced = false;
+    for (const [key, edit] of pending.current) {
+      if (Object.is(args[key], edit.sent)) {
+        if (Object.is(edit.latest, edit.sent)) {
+          pending.current.delete(key);
+        } else {
+          edit.previous = edit.sent;
+          edit.sent = edit.latest;
+          changes[key] = edit.sent;
+        }
+      } else if (!Object.is(args[key], edit.previous)) {
+        // A separate interaction with the example changed the arg.
+        pending.current.delete(key);
+        replaced = true;
+      }
+    }
+    if (Object.keys(changes).length) updateArgs(changes);
+    if (replaced) redraw();
+  }, [args, updateArgs]);
+
+  function setValue(key: string, next: unknown) {
+    const edit = pending.current.get(key);
+    if (edit) {
+      if (Object.is(next, edit.latest)) return;
+      edit.latest = next;
+    } else {
+      if (Object.is(next, args[key])) return;
+      pending.current.set(key, { previous: args[key], sent: next, latest: next });
+      updateArgs({ [key]: next });
+    }
+    redraw();
+  }
+
+  return { valueFor: (key: string) => pending.current.has(key) ? pending.current.get(key)!.latest : args[key], setValue };
+}
+
 type Field = { key: string; node: React.ReactElement };
 const constraintKeys = ['min', 'max', 'step'];
 
@@ -47,6 +93,7 @@ export function DemoControls({ args, argTypes, labels, updateArgs }: Props) {
   const bounds: Field[] = [];
   // An optional number can be cleared. Keep its field editable when Storybook drops the empty arg.
   const editedKeys = React.useRef(new Set<string>());
+  const live = useLiveArgs(args, updateArgs);
 
   for (const [key, arg] of Object.entries(argTypes)) {
     if (!arg.nearic?.labelKey || arg.table?.disable || !arg.control) continue;
@@ -55,11 +102,11 @@ export function DemoControls({ args, argTypes, labels, updateArgs }: Props) {
     const control = typeof arg.control === 'string' ? { type: arg.control } : arg.control;
     // Advanced DOM attributes remain available in the technical Controls panel.
     if (control.disable || (key !== 'disabled' && !(key in args) && !arg.nearic.required && !arg.nearic.owned && !editedKeys.current.has(key))) continue;
-    const value = args[key];
+    const value = live.valueFor(key);
     const label = labels[key === 'disabled' ? 'controls.lock' : arg.nearic.labelKey];
     const update = (next: unknown) => {
       editedKeys.current.add(key);
-      updateArgs({ [key]: next });
+      live.setValue(key, next);
     };
     let input: React.ReactNode;
     let fieldClass = 'nearic-demo-field';
@@ -73,13 +120,19 @@ export function DemoControls({ args, argTypes, labels, updateArgs }: Props) {
         // Native option values are strings. Keep the original type, including 1 versus "1".
         const hasTypedOptions = options.some(item => typeof item !== 'string');
         const optionValue = (item: unknown) => hasTypedOptions ? String(options.indexOf(item)) : String(item);
+        const wireValues = new Set(options.map(optionValue));
+        let defaultValue = '';
+        // Keep user-defined option values intact, even when the enum contains an empty string.
+        while (wireValues.has(defaultValue)) defaultValue += '_';
         input = <span className="nearic-demo-select">
-          <select className="nearic-demo-input" value={value == null ? '' : optionValue(value)} onChange={event => {
+          <select className="nearic-demo-input" value={value === undefined ? defaultValue : optionValue(value)} onChange={event => {
             const selected = event.currentTarget.value;
             update(options.find(item => optionValue(item) === selected));
           }}>
-            {value === undefined && <option value="" />}
-            {options.map(item => <option key={optionValue(item)} value={optionValue(item)}>{control.labels?.[String(item)] ?? String(item)}</option>)}
+            {!arg.nearic.required && <option value={defaultValue}>{labels['controls.default']}</option>}
+            {options.map(item => <option key={optionValue(item)} value={optionValue(item)}>
+              {control.labels?.[String(item)] ?? (item === '' ? labels['controls.emptyString'] : String(item))}
+            </option>)}
           </select>
           <Icon name="next" size="small" />
         </span>;

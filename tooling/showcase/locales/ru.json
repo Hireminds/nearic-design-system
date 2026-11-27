@@ -1,4 +1,6 @@
 {
+  "controls.default": "По умолчанию",
+  "controls.emptyString": "Пустая строка",
   "controls.lock": "Блокировка",
   "controls.title": "Параметры примера",
   "props.common.checked": "Включён",
