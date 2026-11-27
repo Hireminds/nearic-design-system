@@ -1,0 +1,11 @@
+.root[data-tone=success] { color: var(--colors-success); }
+.root[data-tone=warning] { color: var(--colors-warning); }
+.root[data-tone=error] { color: var(--colors-error); }
+.root[data-tone=neutral] { color: var(--colors-muted); }
+.root { display: inline-flex; gap: var(--space-gap); align-items: center; color: var(--colors-muted); }
+.mark { flex: none; inline-size: var(--size-indicator); block-size: var(--size-indicator); border-radius: var(--radius-indicator); background: currentColor; }
+.root[data-tone=neutral] .mark { background: transparent; outline: 1px solid currentColor; outline-offset: -1px; }
+@media (forced-colors: active) {
+  .mark { background: CanvasText; }
+}
+.root[data-tone=info] { color:var(--colors-info); }

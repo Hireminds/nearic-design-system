@@ -1,0 +1,31 @@
+.root { box-sizing:border-box; touch-action:manipulation; }
+.root {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-gap);
+  min-block-size: var(--size-touch);
+  padding: var(--space-compact) var(--space-inset);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--colors-accent);
+  color: var(--colors-on-accent);
+  font-family: inherit;
+  font-size: var(--type-control);
+  font-weight: 650;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.root[data-variant=secondary] { background: var(--colors-action); color: var(--colors-on-action); }
+.root[data-variant=quiet] { background: transparent; color: var(--colors-muted); }
+.root[data-variant=destructive] { background: var(--colors-destructive); color: var(--colors-on-destructive); }
+.root:not(:disabled):active { transform: translateY(1px); }
+.root:focus-visible {
+  outline: var(--size-focus) solid var(--colors-focus);
+  outline-offset: 2px;
+}
+.root:disabled { opacity: var(--opacity-disabled); cursor: default; }
+@media (forced-colors: active) {
+  .root { border: 1px solid ButtonText; }
+}

@@ -1,0 +1,2 @@
+.root { color: var(--colors-info); text-decoration: underline; text-underline-offset: .18em; }
+.root:focus-visible { outline:var(--size-focus) solid var(--colors-focus); outline-offset:2px; }

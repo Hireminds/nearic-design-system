@@ -1,0 +1,8 @@
+.root > .content { align-items: stretch; }
+.title, .rail { flex-wrap: nowrap; }
+.value {
+  margin-inline-start: auto;
+  color: var(--colors-accent);
+  font-variant-numeric: tabular-nums;
+}
+.rail :global(.nr-progress) { flex: 1; }

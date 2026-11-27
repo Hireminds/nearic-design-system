@@ -1,0 +1,10 @@
+:global(.nr-button).root {
+  inline-size: var(--size-touch);
+  block-size: var(--size-touch);
+  min-inline-size: var(--size-touch);
+  padding: 0;
+  border: calc((var(--size-touch) - var(--size-control)) / 2) solid transparent;
+  background-clip: padding-box;
+  border-radius: 50%;
+}
+.root[data-variant=secondary] { background-color: var(--colors-control); }

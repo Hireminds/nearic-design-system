@@ -1,0 +1,2 @@
+.root { display: flex; gap: var(--space-gap); min-inline-size: 0; }
+.root { flex-wrap: wrap; align-items: center; }
