@@ -1,3 +1,4 @@
+import * as React from 'react';
 import type { Args, StrictArgTypes } from 'storybook/internal/types';
 import type { Labels } from './labels';
 import './controls.css';
