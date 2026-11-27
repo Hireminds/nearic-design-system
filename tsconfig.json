@@ -10,15 +10,19 @@
       "DOM",
       "DOM.Iterable",
       "ES2022"
-    ]
+    ],
+    "resolveJsonModule": true
   },
   "include": [
     "packages/**/*.tsx",
     "catalog/**/*.tsx",
-    "catalog/runtime.ts"
+    "catalog/runtime.ts",
+    "packages/**/*.d.ts"
   ],
   "exclude": [
     "packages/*/dist",
-    "node_modules"
+    "node_modules",
+    "packages/**/*.stories.tsx",
+    "packages/**/*.example.tsx"
   ]
 }

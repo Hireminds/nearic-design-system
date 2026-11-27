@@ -10,7 +10,9 @@
 
 ## Установка
 
-Выберите пакет нужного уровня из [релиза v0.1.0-preview.3](https://github.com/Hireminds/nearic-design-system/releases/tag/v0.1.0-preview.3). UI-архив включает свои зависимости Nearic той же версии. Для интерфейса BOX установите в приложении с React один архив.
+Готовую сборку каждой ветки для ревью можно скачать в GitHub Actions из артефакта `nearic-box-review`. В корне архива находятся витрина, Storybook и каталог `downloads/` с пакетами этой сборки.
+
+Выберите опубликованный пакет нужного уровня из [релиза v0.1.0-preview.3](https://github.com/Hireminds/nearic-design-system/releases/tag/v0.1.0-preview.3). UI-архив включает свои зависимости Nearic той же версии. Для интерфейса BOX установите в приложении с React один архив.
 
 ```sh
 npm install https://github.com/Hireminds/nearic-design-system/releases/download/v0.1.0-preview.3/nearic-ui-box-0.1.0-preview.3.tgz
@@ -53,6 +55,7 @@ export const Notifications = () => <Switch label="Уведомления" defaul
 ```sh
 npm ci
 npm run verify
+npm run build --workspace @nearic/box-storybook
 python3 -m http.server 8080 --bind 127.0.0.1 --directory dist
 ```
 

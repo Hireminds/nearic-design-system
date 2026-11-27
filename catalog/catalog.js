@@ -1,12 +1,27 @@
-import {mountSamples, mountBuilder} from './runtime.js';
+import {mountBuilder} from './runtime.js';
 
 const {tokens, atoms, components} = window.catalogData;
 const chapters = {atoms:'Атомы', builder:'Конструктор', components:'Составные блоки', foundations:'Основы'};
-const patternStoryIds = {
-  'box-actions': 'decisionactions',
-  'box-network': 'networkrow',
-  'box-volume': 'volumecontrol',
-};
+const storyGroups = new Map();
+let indexMessage = 'Загружаем примеры…';
+
+async function loadStories() {
+  try {
+    const response = await fetch('./storybook/index.json');
+    if (!response.ok) throw new Error('Missing Storybook index');
+    const {entries} = await response.json();
+    for (const entry of Object.values(entries)) {
+      const group = storyGroups.get(entry.title) ?? {stories: []};
+      if (entry.type === 'story') group.stories.push(entry);
+      if (entry.type === 'docs') group.docs = entry;
+      storyGroups.set(entry.title, group);
+    }
+    indexMessage = 'Примеры для этого компонента пока недоступны.';
+  } catch {
+    indexMessage = 'Не удалось загрузить примеры Storybook. Обновите страницу, чтобы повторить.';
+  }
+  if (['', 'atoms', 'components'].includes(current.section)) render();
+}
 const groups = {
   colors:'Цвета', type:'Типографика', space:'Отступы', radius:'Скругления',
   size:'Размеры и касание', motion:'Движение', opacity:'Прозрачность'
@@ -83,16 +98,53 @@ function pageTitle(title, description, badge = '') {
 function partHeading(title, url, label) {
   return '<div class="part-heading"><h2>'+title+'</h2>'+(url?'<a href="'+url+'">'+label+'</a>':'')+'</div>';
 }
-function sample(item, section) {
-  const isAtom = section === 'atoms';
-  return '<div class="demo device-demo" data-family="box" data-component="'+item.id+'">'+
-    '<div '+(isAtom?'data-atom-demo':'data-pattern-demo')+'="'+item.id+'"></div></div>';
+function storyFrame(item, story, controls = false) {
+  if (!story) return '<p class="sample-status" role="status">'+indexMessage+'</p>';
+  const query = new URLSearchParams({id: story.id, viewMode: 'story'});
+  if (controls) query.set('nearicDemo', '1');
+  if (new URLSearchParams(location.search).get('lang') === 'en') query.set('lang', 'en');
+  const title = safeText(item.name + ' · ' + story.name);
+  return '<iframe class="story-frame" title="'+title+'" loading="'+(controls ? 'eager' : 'lazy')+
+    '" src="./storybook/iframe.html?'+safeText(query.toString())+'"></iframe>';
+}
+
+function sample(item, controls = false) {
+  const story = storyGroups.get('BOX/'+item.component)?.stories[0];
+  return '<div class="demo" data-family="box" data-component="'+item.id+'">'+storyFrame(item,story,controls)+'</div>';
+}
+
+// Storybook runs on the same origin. Measure the rendered story, which may grow
+// when arguments change or controls wrap at smaller viewport widths.
+function fitStories(parent) {
+  const observers = new Map();
+  function fit(frame) {
+    observers.get(frame)?.disconnect();
+    const doc = frame.contentDocument;
+    const root = doc?.getElementById('storybook-root');
+    if (!root) return;
+    const resize = () => {
+      const body = doc.defaultView.getComputedStyle(doc.body);
+      const height = root.offsetTop + root.offsetHeight + parseFloat(body.paddingBottom);
+      if (height > 0) frame.style.height = Math.ceil(height) + 'px';
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(root);
+    observers.set(frame, observer);
+    resize();
+  }
+  const onLoad = event => { if (event.target.matches?.('.story-frame')) fit(event.target); };
+  parent.addEventListener('load', onLoad, true);
+  parent.querySelectorAll('.story-frame').forEach(fit);
+  return () => {
+    parent.removeEventListener('load', onLoad, true);
+    for (const observer of observers.values()) observer.disconnect();
+  };
 }
 function detailUrl(item, section) {return route(section,item.id);}
 function itemTile(item, section) {
   const url = detailUrl(item,section);
   return '<article class="component-tile"><div class="tile-heading"><div><p class="category">'+item.group+'</p><h3><a class="tile-title" href="'+url+'">'+item.name+'</a></h3></div></div>'+
-    sample(item,section)+'<div class="tile-foot"><p>'+item.summary+'</p><a href="'+url+'" aria-label="Подробнее: '+item.name+'">Подробнее</a></div></article>';
+    sample(item)+'<div class="tile-foot"><p>'+item.summary+'</p><a href="'+url+'" aria-label="Подробнее: '+item.name+'">Подробнее</a></div></article>';
 }
 function overview() {
   const items = atoms;
@@ -105,18 +157,22 @@ function overview() {
     partHeading('Составные блоки',route('components'),'Все блоки')+'<div class="pattern-index">'+components.map(item=>'<a href="'+detailUrl(item,'components')+'"><strong>'+item.name+'</strong><span>'+item.summary+'</span></a>').join('')+'</div>'+
     '<section class="foundations-overview">'+partHeading('Основы',route('foundations'),'Все токены')+'<div class="quick-links">'+Object.keys(tokens.box).map(key=>'<a href="'+route('foundations',key)+'">'+groups[key]+'</a>').join('')+'</div></section>';
 }
-function itemPage(item, section) {
-  const storyId = patternStoryIds[item.id] ?? item.id.replaceAll('-', '');
-  const storybook = './storybook/?path=/docs/box-'+storyId+'--docs';
+function itemPage(item) {
+  const group = storyGroups.get('BOX/'+item.component);
+  const storybook = group?.docs && './storybook/?path=/docs/'+encodeURIComponent(group.docs.id);
+  const states = (group?.stories ?? []).map(story =>
+    '<figure data-state="'+safeText(story.name)+'"><figcaption>'+safeText(story.name)+'</figcaption>'+
+    storyFrame(item,story)+'</figure>'
+  ).join('');
   const parts = (item.uses || []).map(id => {
     const atom = atoms.find(a => a.id === id);
     return '<a href="'+route('atoms',id)+'">'+atom.name+'</a>';
   });
   return pageTitle(item.name,item.summary,'<span class="proposal">Предложение</span>')+
-    '<div class="detail-container">'+partHeading('Живой пример',storybook,'Свойства и TSX в Storybook')+sample(item,section)+'<section class="details">'+
+    '<div class="detail-container">'+partHeading('Живой пример',storybook,'Свойства и TSX в Storybook')+sample(item,true)+'<section class="details">'+
     (parts.length?'<h2>Из чего собран</h2><div class="quick-links">'+parts.join('')+'</div>':'')+
     '<h2>Применение</h2><p>'+item.usage+'</p><h2>Состояния и варианты</h2></section>'+
-    '<div data-state-demo="'+item.id+'"></div></div>';
+    '<div class="state-grid">'+states+'</div></div>';
 }
 function itemIndex(section) {
   const items = sectionItems(section);
@@ -173,10 +229,10 @@ function render() {
     cleanPage = mountBuilder($('#builder'));
   }else{
     if(section==='foundations')page.innerHTML=foundationPage();
-    else if(item)page.innerHTML=itemPage(item,section);
+    else if(item)page.innerHTML=itemPage(item);
     else if(section)page.innerHTML=itemIndex(section);
     else page.innerHTML=overview();
-    cleanPage = mountSamples(page);
+    cleanPage = fitStories(page);
   }
   renderNav();
   menu(false);
@@ -192,3 +248,4 @@ document.addEventListener('keydown',e=>{
 });
 window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0);});
 render();
+loadStories();

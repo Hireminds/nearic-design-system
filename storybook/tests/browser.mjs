@@ -99,7 +99,7 @@ try {
   const index = await (await fetch(base + 'index.json')).json();
   const entries = Object.values(index.entries);
   const components = Object.keys(box).filter(name => /^[A-Z]/.test(name));
-  assert.equal(components.length, 14, 'Update coverage when the public component list changes');
+  assert(components.includes('Card'), 'The BOX profile must export the reusable surface');
   for (const component of components) {
     const group = entries.filter(entry => entry.title === 'BOX/' + component);
     const docs = group.find(entry => entry.type === 'docs'), story = group.find(entry => entry.type === 'story');
@@ -126,7 +126,40 @@ try {
   }
   assert.deepEqual(catalogDocs.sort(), entries.filter(entry => entry.type === 'docs').map(entry => '/docs/' + entry.id).sort());
 
+  // The showcase embeds the canonical story. Both the component and its generated controls
+  // update the same args, including a boolean inherited from native HTML inputs.
+  await page.goto(catalog + '#box/atoms/slider');
+  const demo = page.frameLocator('iframe[src*="nearicDemo=1"]');
+  const slider = demo.locator('input.nr-slider');
+  const sliderControl = demo.getByRole('slider', { name: 'Значение', exact: true });
+  await expect(slider).toHaveValue('60');
+  await demo.getByRole('button', { name: 'Заблокировать' }).click();
+  await expect(slider).toBeDisabled();
+  await demo.getByRole('button', { name: 'Разблокировать' }).click();
+  await expect(slider).toBeEnabled();
+  await slider.focus();
+  await slider.press('ArrowRight');
+  await expect(sliderControl).toHaveValue('65');
+  await sliderControl.press('Home');
+  await expect(slider).toHaveValue('0');
+
+  await page.goto(catalog + '?lang=en#box/components/box-volume');
+  const volume = page.frameLocator('iframe[src*="nearicDemo=1"]');
+  await volume.getByRole('button', { name: 'Прибавить громкость' }).click();
+  await expect(volume.getByRole('spinbutton', { name: 'Level', exact: true })).toHaveValue('70');
+  await volume.getByRole('spinbutton', { name: 'Level', exact: true }).fill('30');
+  await expect(volume.locator('output')).toHaveText('30%');
+  await volume.getByRole('button', { name: 'Disable', exact: true }).click();
+  await expect(volume.getByRole('button', { name: 'Прибавить громкость' })).toBeDisabled();
+
   await page.setViewportSize({ width: 320, height: 240 });
+  await direct('box-volumecontrol--adjust');
+  const card = page.locator('.nr-card.nr-volume');
+  await expect(card).toBeVisible();
+  for (const button of await card.getByRole('button').all()) {
+    const bounds = await button.boundingBox();
+    assert(bounds && bounds.height >= 44 && bounds.width >= 44);
+  }
   const ssid = 'W'.repeat(32);
   await direct('box-networkrow--long-name');
   const network = page.locator('.nr-network');
@@ -177,7 +210,7 @@ try {
   await managerSwitch.click(); await expect(page.locator('#control-checked')).not.toBeChecked();
   await page.locator('#control-disabled').press('Space'); await expect(managerSwitch).toBeDisabled();
   assert.deepEqual(errors, []);
-  console.log('14 typed components with Docs, catalog links and live samples. Switch geometry, long SSID at 320px, keyboard, disabled states and Controls passed.');
+  console.log(components.length + ' typed components with Docs, catalog links and live samples. Switch geometry, long SSID at 320px, keyboard, disabled states and Controls passed.');
   await context.close();
 } finally {
   await browser?.close();

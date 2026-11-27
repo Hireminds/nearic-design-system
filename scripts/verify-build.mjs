@@ -16,12 +16,24 @@ const files = [
 ];
 assert.deepEqual((await readdir('dist',{recursive:true})).sort(),files.sort());
 
-// Each archive has an explicit public file set, including its exact bundled siblings.
+// Only package entry points, component declarations and exact bundled siblings ship.
+const coreComponents = [
+  'Icon', 'Text', 'Button', 'IconButton', 'Switch', 'Slider', 'Progress', 'StatusIndicator',
+  'Link', 'Row', 'Stack', 'Card',
+];
+const boxComponents = ['NetworkRow', 'VolumeControl', 'DecisionActions'];
+const declarationFiles = names => names.flatMap(name => [
+  'dist/src/' + name + '/index.d.ts', 'dist/src/' + name + '/' + name + '.d.ts',
+]);
+
 const allowed = {
   tokens: ['dist/tokens.css','dist/tokens.json'],
-  'ui-core': ['dist/index.js','dist/index.d.ts','dist/styles.css'],
+  'ui-core': [
+    'dist/index.js','dist/index.d.ts','dist/styles.css',
+    'dist/src/classNames.d.ts','dist/src/input.d.ts','dist/src/layout.d.ts',...declarationFiles(coreComponents),
+  ],
   'ui-box': ['dist/index.js','dist/index.d.ts','dist/styles.css','dist/overrides.css','dist/overrides.json',
-    'dist/patterns.css','dist/tokens.css','dist/tokens.json'],
+    'dist/patterns.css','dist/tokens.css','dist/tokens.json',...declarationFiles(boxComponents)],
 };
 const archives = {};
 for (const name of names) {
@@ -55,8 +67,8 @@ assert.equal(patch.size.thumb,'20px');
 for (const group of Object.keys(resolved)) {
   assert.deepEqual(resolved[group],{...base[group], ...patch[group]});
 }
-const coreExports = ['Icon','Text','Button','IconButton','Switch','Slider','Progress','StatusIndicator','Link','Row','Stack','iconNames'];
-const boxExports = [...coreExports,'NetworkRow','VolumeControl','DecisionActions'];
+const coreExports = [...coreComponents, 'iconNames'];
+const boxExports = [...coreExports, ...boxComponents];
 const typescript = path.resolve('node_modules/.bin/tsc');
 
 async function consumer(name, selected, reactArchive) {
@@ -144,3 +156,9 @@ try {
 } finally {
   await rm(peers,{recursive:true,force:true});
 }
+
+const componentTests = [
+  ...coreComponents.map(name => 'packages/ui-core/src/' + name + '/' + name + '.test.mjs'),
+  ...boxComponents.map(name => 'packages/ui-box/src/' + name + '/' + name + '.test.mjs'),
+];
+execFileSync(process.execPath, ['--test', ...componentTests], { stdio: 'inherit' });

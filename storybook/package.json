@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "storybook dev -p 6006 --disable-telemetry",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "dev": "npm run props && storybook dev -p 6006 --disable-telemetry",
+    "typecheck": "npm run props && tsc --noEmit -p tsconfig.json",
     "build": "npm run typecheck && storybook build --disable-telemetry --output-dir ../dist/storybook",
-    "test:browser": "node tests/browser.mjs"
+    "test:browser": "node tests/browser.mjs",
+    "props": "node ../tooling/showcase/generate.mjs --components ../packages/ui-core/src --components ../packages/ui-box/src --out .generated/props.json"
   },
   "dependencies": {
     "@nearic/ui-box": "*",
